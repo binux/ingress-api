@@ -271,61 +271,54 @@ class IngressDashboradAPI(object):
                 }
         self.xsrf = None
 
-    def login(self, cookie):
+    def login(self, cookie=None):
         if not cookie:
             print 'visite "https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttp://www.ingress.com/intel&ltmpl=gm&shdf=ChMLEgZhaG5hbWUaB0luZ3Jlc3MMEgJhaCIU9ygNTr2_Yc5Lp2ZdvcgU78p3ggQoATIUSqjGiHQZFZbW83BI1iWbY93qYg4"'
             print 'get Cookie of domain http://www.ingress.com/intel'
             cookie = raw_input('Cookie:')
         self.xsrf = re.findall('csrftoken=(\w+)', cookie)[0]
-        self.session.cookies['xsrf'] = self.xsrf
+        self.session.cookies['csrftoken'] = self.xsrf
         self.session.cookies['ACSID'] = re.findall('ACSID=([^;]+)', cookie)[0]
 
-    def getThinnedEntitiesV2(self, minLat, maxLat, minLng, maxLng, split=True):
+    def getThinnedEntitiesV2(self, minLat, minLng, maxLat, maxLng, split=False, minLevelOfDetail=-1):
         assert self.xsrf
 
-        qk = int(time.time())
+        qk = 233
         bounds = []
         if split:
             for lat in xrange(minLat, maxLat, self.lat_split):
                 for lng in xrange(minLng, maxLng, self.lng_split):
+                    _qk = utils.int2base(qk, 4); qk += 1
                     bounds.append({
-                        'id': utils.int2base(qk, 4),
+                        'id': _qk,
                         'maxLatE6': min(maxLat, lat+self.lat_split),
                         'maxLngE6': min(maxLng, lng+self.lng_split),
                         'minLatE6': lat,
                         'minLngE6': lng,
-                        'qk': utils.int2base(qk, 4),
+                        'qk': _qk,
                         })
-                    qk += 1
         else:
+            _qk = utils.int2base(qk, 4)
             bounds.append({
-                'id': utils.int2base(qk, 4),
+                'id': _qk,
                 'maxLatE6': maxLat,
                 'maxLngE6': maxLng,
                 'minLatE6': minLat,
                 'minLngE6': minLng,
-                'qk': utils.int2base(qk, 4),
+                'qk': _qk,
                 })
 
-        r = requests.post('http://www.ingress.com/rpc/dashboard.getThinnedEntitiesV2',
-                data=json.dumps({
-                    'method': "dashboard.getThinnedEntitiesV2",
-                    'minLevelOfDetail': -1,
-                    'boundsParamsList': [{
-                        'id': qk,
-                        'maxLatE6': maxLat,
-                        'maxLngE6': maxLng,
-                        'minLatE6': minLat,
-                        'minLngE6': minLng,
-                        'qk': qk,
-                        }],
-                    }),
-                headers={
-                    'X-CSRFToken': self.xsrf,
-                    })
-        return r.json
-
-
+        for group in [bounds[i:i+5] for i in range(0, len(bounds), 5)]:
+            r = self.session.post('http://www.ingress.com/rpc/dashboard.getThinnedEntitiesV2',
+                    data=json.dumps({
+                        'method': "dashboard.getThinnedEntitiesV2",
+                        'minLevelOfDetail': minLevelOfDetail,
+                        'boundsParamsList': group,
+                        }),
+                    headers={
+                        'X-CSRFToken': self.xsrf,
+                        })
+            yield r.json
 
 
 
