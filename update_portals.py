@@ -21,6 +21,19 @@ def fetch_portals(cookie=None):
                     continue
                 yield guid, uptime, info
 
+def fetch_field(cookie=None):
+    ingress = api.IngressDashboradAPI()
+    ingress.login(cookie)
+
+    for result in ingress.getThinnedEntitiesV2(39798197,116014895,40125552,116709780, False, 0):
+        result = result and result.get('result')
+        result = result and result.get('map')
+        for qk, entities in result.iteritems():
+            for guid, uptime, info in entities.get('gameEntities', []):
+                if 'capturedRegion' not in info:
+                    continue
+                yield guid, uptime, info
+
 def get_level(info):
     return sum([x and x['level'] or 0 for x in info['resonatorArray']['resonators']]) / 8.0
 
@@ -58,4 +71,10 @@ def build_kml():
     kml.save('beijing.kml')
 
 if __name__ == '__main__':
-    update_database()
+    mus = {
+            'ALIENS': 0,
+            'RESISTANCE': 0,
+            'NEUTRAL': 0}
+    for guid, uptime, info in fetch_field():
+        mus[info['controllingTeam']['team']] += int(info['entityScore']['entityScore'])
+    print mus
