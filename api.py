@@ -318,7 +318,7 @@ class IngressDashboradAPI(object):
                     headers={
                         'X-CSRFToken': self.xsrf,
                         })
-            yield r.json
+            yield r.json()
 
 
 

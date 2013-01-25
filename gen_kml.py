@@ -21,6 +21,7 @@ areas = {
         'guilin.kmz': [25050136,110038887,25426521,110514046],
         'congqing.kmz': [29175535,106012398,30136209,107209907],
         'cengdu.kmz': [30500149,103837105,30820284,104298530],
+        'nanjing.kmz': [31910505,118615527,32188697,118939624],
         }
 styles = {
         'ALIENS_0_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/blank.PNG',
