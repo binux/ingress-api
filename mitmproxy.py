@@ -8,6 +8,7 @@
 import os
 import json
 import urllib2
+import database
 import simplekml
 from libmproxy import controller, proxy
 
@@ -32,35 +33,22 @@ def decode_coor(string):
     a = string.split(',')
     if len(a) != 2:
         return ()
-    return (hex_decode(a[0])*1e-6, hex_decode(a[1])*1e-6)
-
-coords = []
-lat = (40.0, 41.0)
-lng = (116.0, 117.0)
-for i in range(50):
-    for j in range(50):
-        coords.append((lat[0]+(lat[1]-lat[0])/20.0*i,
-                      lng[0]+(lng[1]-lng[0])/20.0*j))
+    return (hex_decode(a[0]), hex_decode(a[1]))
 
 class StickyMaster(controller.Master):
     def __init__(self, server):
         controller.Master.__init__(self, server)
-        self.stickyhosts = {}
-        self.saved_point = set()
-        self.kml = simplekml.Kml()
+        self.session = database.Session()
 
     def run(self):
         try:
             return controller.Master.run(self)
         except KeyboardInterrupt:
             self.shutdown()
-            self.kml.save('area_3_detail.kml')
 
     def handle_request(self, msg):
-        if msg.get_url() == 'http://mobilemaps.clients.google.com/glm/mmap':
-            msg._ack(None)
-        if msg.get_url().startswith('https://betaspike.appspot.com/rpc'):
-            msg._ack(None)
+        print msg.get_url()
+        msg._ack()
 
         if msg.get_url() == 'https://betaspike.appspot.com/rpc/gameplay/getObjectsInCells':
             msg.decode()
@@ -75,28 +63,15 @@ class StickyMaster(controller.Master):
                 print 'no playerLocation'
                 return
 
-            if coords:
-                coord = coords.pop()
-                print 'goto %s, %d togo' % (coord, len(coords))
-                urllib2.urlopen("http://127.0.0.1:9292/adb/geo_location?latitude=%f&longitude=%f" % coord)
-
-            cell = get_common(request['params']['cellsAsHex'])
+            cells = request['params']['cellsAsHex']
             coor = decode_coor(request['params']['playerLocation'])
-            if coor in self.saved_point:
-                print 'saved point'
-                return
-            if cell and coor:
-                self.saved_point.add(coor)
-                print cell, coor
-                self.kml.newpoint(name=cell,
-                                  description=str(coor),
-                                  coords = [coor[::-1],])
-        msg._ack()
+            for each in cells:
+                cell = database.GEOCell()
                 cell.latE6 = coor[0]
                 cell.lngE6 = coor[1]
-        print msg.request.get_url()
                 cell.cell = each
                 self.session.merge(cell)
+                self.session.commit()
 
     def handle_response(self, msg):
         msg._ack()
