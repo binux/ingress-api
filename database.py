@@ -6,7 +6,7 @@
 # Created on 2013-01-24 21:29:41
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, UniqueConstraint
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -24,12 +24,15 @@ class Portal(Base):
     energy = Column(Integer)
 
 class GEOCell(Base):
-    __table__ = 'geo_cell'
+    __tablename__ = 'geo_cell'
+    __table_args__ = (
+        UniqueConstraint('latE6', 'lngE6', 'cell'),
+        {},
+    )
 
-    id = Column(Integer, primary_key=True)
-    latE6 = Column(Integer)
-    lngE6 = Column(Integer)
-    cell = Column(String)
+    latE6 = Column(Integer, primary_key=True)
+    lngE6 = Column(Integer, primary_key=True)
+    cell = Column(String, primary_key=True)
 
 engine = create_engine('sqlite:///aio.db')
 Base.metadata.create_all(engine)

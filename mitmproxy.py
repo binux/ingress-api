@@ -23,7 +23,6 @@ def get_common(string_list):
                 break
     return common_prefix
 
-
 def hex_decode(num):
     num = int(num, 16)
     if num & 0x80000000:
@@ -39,6 +38,8 @@ class StickyMaster(controller.Master):
     def __init__(self, server):
         controller.Master.__init__(self, server)
         self.session = database.Session()
+        
+        self.portals = self.session.query(database.Portal).all()
 
     def run(self):
         try:
@@ -72,6 +73,12 @@ class StickyMaster(controller.Master):
                 cell.cell = each
                 self.session.merge(cell)
                 self.session.commit()
+
+            if self.portals:
+                portal = self.portals.pop()
+                print 'goto %s,%s, %d togo' % (portal.latE6, portal.lngE6, len(self.portals))
+                urllib2.urlopen("http://127.0.0.1:9292/adb/geo_location?latitude=%f&longitude=%f"\
+                        % (portal.latE6*1e-6, portal.lngE6*1e-6))
 
     def handle_response(self, msg):
         msg._ack()
