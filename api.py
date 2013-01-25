@@ -35,7 +35,7 @@ class IngressAPI(object):
 
     def __init__(self):
         self.session = requests.session()
-        self.session.config['base_headers'] = {
+        self.session.headers = {
                 'Accept-Encoding': 'gzip',
                 'User-Agent': 'Nemesis (gzip)',
                 }
@@ -254,7 +254,7 @@ class IngressDashboradAPI(object):
 
     def __init__(self):
         self.session = requests.session()
-        self.session.config['base_headers'] = {
+        self.session.headers = {
                   'Accept': 'application/json, text/javascript, */*; q=0.01',
                   'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
                   'Accept-Encoding': 'gzip,deflate,sdch',
