@@ -22,6 +22,10 @@ class Portal(Base):
     lngE6 = Column(Integer)
     level = Column(Integer)
     energy = Column(Integer)
+    ignore = Column(Integer, default=0)
+
+    def __repr__(self):
+        return '<Portal:%s:L%d @%f,%f>' % (self.guid, self.level, self.latE6*1e-6, self.lngE6*1e-6)
 
 class GEOCell(Base):
     __tablename__ = 'geo_cell'
