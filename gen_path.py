@@ -83,17 +83,17 @@ class find_path(object):
                     self.best_len = next_len
 
                 if next_len < self.current_len:
-                    self.current = next_status
-                    self.current_len = next_len
                     if abs(next_len - self.current_len) > 1:
                         changed = True
+                    self.current = next_status
+                    self.current_len = next_len
                 else:
                     pt = cmath.exp( -(next_len - self.current_len) / temperature )
                     if pt.real > random.random():
-                        self.current = next_status
-                        self.current_len = next_len
                         if abs(next_len - self.current_len) > 1:
                             changed = True
+                        self.current = next_status
+                        self.current_len = next_len
 
             if not changed:
                 if not_changed_cnt > 2:

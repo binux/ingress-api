@@ -30,7 +30,7 @@ def hex_decode(num):
 class IngressAPI(object):
     basepath = 'https://betaspike.appspot.com'
     #nemesisSoftwareVersion = '2012-12-20T21:55:07Z 887b00b46b68 opt'
-    namesisSoftwareVersion = '2013-01-15T22:12:53Z ae145d098fc5 opt'
+    nemesisSoftwareVersion = '2013-01-15T22:12:53Z ae145d098fc5 opt'
     deviceSoftwareVersion = '4.1.1'
 
     def __init__(self):
@@ -47,7 +47,7 @@ class IngressAPI(object):
             print 'get cookie SACSID of domain betaspike.appspot.com'
             cookie = raw_input('SACSID:')
         self.session.cookies['SACSID'] = cookie
-        self.handshake()
+        return self.handshake()
 
     def handshake(self):
         response = self.session.get(self.basepath+'/handshake', params={
@@ -74,8 +74,9 @@ class IngressAPI(object):
                     'Content-Type': 'application/json;charset=UTF-8',
                     'X-XsrfToken': self.xsrf,
                     })
+        logging.debug((method, args, kwargs))
         logging.debug(response.content)
-        return response.json
+        return response.json()
 
     def _call_proxy(self):
         _frame = sys._getframe(1)
@@ -85,13 +86,15 @@ class IngressAPI(object):
 
     def hex_location(self, location):
         def hex_format(num):
-            if isinstance(num, float) and num > 180:
+            if isinstance(num, float) and num < 180:
                 num *= 1e6
             num = int(num)
             if num < 0:
                 num = abs(num) ^ 0xffffffff
             return '{0:0=8x}'.format(num)
 
+        if isinstance(location, utils.LatLng):
+            location = (location.lat, location.lng)
         if isinstance(location, (tuple, list)):
             return '%s,%s' % (hex_format(location[0]), hex_format(location[1]))
         return location
