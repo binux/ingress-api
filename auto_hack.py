@@ -44,14 +44,14 @@ if __name__ == '__main__':
     logging.info('path total length: %fkm, need %fh' % (total_len/1000, total_len / ingress.speed_limit / 60 / 60))
 
     _continue = True
-    _debug = False
+    _debug = True
     for portal in itertools.cycle(path):
         if not _continue:
             break
         try:
             need_time = ingress.goto(portal.latlng, wait=False)
             logging.info('goto %s need %ds' % (portal, need_time))
-            need_time = ingress.goto(portal.latE6*1e-6, portal.lngE6*1e-6)
+            need_time = ingress.goto(portal.latlng)
 
             hack = ingress.hack(portal)
             if hack == COOLDOWN_MSG:
