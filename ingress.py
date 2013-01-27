@@ -13,34 +13,82 @@ import utils
 import database
 
 class Item(object):
+    @staticmethod
+    def is_item(info):
+        if 'resource' in info:
+            return True
+        elif 'resourceWithLevels' in info:
+            return True
+        elif 'modResource' in info:
+            return True
+        return False
+
     def __init__(self, info):
         self.info = info
-        self.type = (info.get('resource')\
-                       or info.get('resourceWithLevels')\
-                       or info.get('modResource')).get('resourceType')
-        self.level = info.get('resourceWithLevels') and info['resourceWithLevels']['level']
-        self.portal_guid = info.get('portalCoupler') and info['portalCoupler']['portalGuid']
-        self.MITIGATION = info.get('modResource') and info['modResource']['stats']['MITIGATION']
-        self.rarity = info.get('modResource') and info['modResource']['rarity']
+
+    @property
+    def type(self):
+        info = self.info
+        return (info.get('resource')\
+                    or info.get('resourceWithLevels')\
+                    or info.get('modResource')).get('resourceType')
+
+    @property
+    def level(self):
+        info = self.info
+        return info.get('resourceWithLevels') and info['resourceWithLevels']['level']
+
+    @property
+    def portal_guid(self):
+        info = self.info
+        return info.get('portalCoupler') and info['portalCoupler']['portalGuid']
+
+    @property
+    def mitigation(self):
+        info = self.info
+        return info.get('modResource') and info['modResource']['stats']['MITIGATION']
+
+    @property
+    def rarity(self):
+        info = self.info
+        return info.get('modResource') and info['modResource']['rarity']
+
+    @property
+    def latlng(self):
+        location = self.info.get('locationE6')
+        if not location:
+            return None
+        return utils.LatLng(location['latE6']*1e-6, location['lngE6']*1e-6)
 
     def __repr__(self):
         if self.type == 'PORTAL_LINK_KEY':
             return '<PortalKey#%s>' % self.portal_guid
         elif self.type == 'EMP_BURSTER':
-            return '<Burster+%d>' % self.level
+            return '<L%d Burster>' % self.level
         elif self.type == 'EMITTER_A':
-            return '<Resonator+%d>' % self.level
+            return '<L%d Resonator>' % self.level
         elif self.type == 'RES_SHIELD':
             return '<Shield:%s>' % self.rarity
         elif self.type == 'MEDIA':
-            return '<Media+%d>' % self.level
+            return '<L%d Media>' % self.level
         else:
             return repr(self.info)
 
+class Portal(object):
+    def __init__(self, info):
+        self.info = info
+
+    @property
+    def latlng(self):
+        location = self.info.get('locationE6')
+        if not location:
+            return None
+        return utils.LatLng(location['latE6']*1e-6, location['lngE6']*1e-6)
 
 class Ingress(object):
     hack_range = 40
     energyGlobGuids_limit = 100
+    pickup_limit = 40
     fake_cell = '358b400000000000'
 
     def __init__(self, speed_limit=15.0):
@@ -81,12 +129,11 @@ class Ingress(object):
             logging.error(ret['result']['pregameStatus'] )
             raise Exception
 
-    def goto(self, lat, lng, wait=True):
+    def goto(self, to, wait=True):
         if not self.latlng:
-            self.latlng = utils.LatLng(lat, lng)
+            self.latlng = to
             return 0
         else:
-            to = utils.LatLng(lat, lng)
             dist = to - self.latlng
             need_time = dist / self.speed_limit - time.time() + self.arrive_time
 
@@ -124,10 +171,10 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
-    def collect_xm(self):
+    def scan(self, meters=100):
         #find cells
-        sw = self.latlng.goto(225, 100)
-        ne = self.latlng.goto(45, 100)
+        sw = self.latlng.goto(225, meters)
+        ne = self.latlng.goto(45, meters)
         cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
                     .filter(sw.lat*1e6 < database.GEOCell.latE6)\
                     .filter(database.GEOCell.latE6 < ne.lat*1e6)\
@@ -142,18 +189,48 @@ class Ingress(object):
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
-        if not ret.get('gameBasket') or not ret['gameBasket'].get('energyGlobGuids'):
+        return ret.get('gameBasket', {})
+
+    def collect_xm(self, nearby=None):
+        if nearby is None:
+            nearby = self.scan()
+        if not nearby.get('energyGlobGuids'):
             return {}
 
         ret2 = self.api.gameplay_getObjectsInCells(
                 cells,
                 [self.knobSyncTimestamp, ]*len(cells),
-                energyGlobGuids=ret['gameBasket']['energyGlobGuids'][:self.energyGlobGuids_limit],
+                energyGlobGuids=nearby['energyGlobGuids'][:self.energyGlobGuids_limit],
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
         self.updateGameBasket(ret2.get('gameBasket'))
 
         return ret2
+
+    def drop(self, item):
+        ret = self.api.gameplay_dropItem(
+                item,
+                playerLocation=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        return ret
+
+    def pickup(self, nearby=None):
+        if nearby is None:
+            nearby = self.scan()
+        items = []
+        for guid, _, info in nearby.get('gameEntities', []):
+            if Item.is_item(info):
+                item = Item(info)
+                if self.latlng - item.latlng > self.pickup_limit:
+                    continue
+                ret = self.api.gameplay_pickUp(
+                        guid,
+                        knobSyncTimestamp=self.knobSyncTimestamp,
+                        playerLocation=self.at())
+                self.updateGameBasket(ret.get('gameBasket'))
+                for _guid, _, _info in ret.get('gameBasket', {}).get('inventory', []):
+                    items.append(self.inventory.get(_guid) or Item(_info))
+        return items
 
     def updateGameBasket(self, basket):
         if not basket:

@@ -49,7 +49,7 @@ if __name__ == '__main__':
         if not _continue:
             break
         try:
-            need_time = ingress.goto(portal.latE6*1e-6, portal.lngE6*1e-6, wait=False)
+            need_time = ingress.goto(portal.latlng, wait=False)
             logging.info('goto %s need %ds' % (portal, need_time))
             need_time = ingress.goto(portal.latE6*1e-6, portal.lngE6*1e-6)
 
@@ -81,7 +81,10 @@ if __name__ == '__main__':
             if ingress.player_info['energyState'] != 'XM_OK'\
                     or ingress.player_info['energy'] < max(ingress.max_energy * 0.5, 500):
                 orig_energy = ingress.player_info['energy']
-                xm = ingress.collect_xm()
+                nearby = ingress.scan()
+                xm = ingress.collect_xm(nearby)
+                for each in ingress.pickup(nearby):
+                    logging.info('pickup %r' % each)
                 logging.warning('energy +%d' % (ingress.player_info['energy'] - orig_energy))
         except Exception, e:
             logging.exception(e)

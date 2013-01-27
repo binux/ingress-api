@@ -66,16 +66,31 @@ class StickyMaster(controller.Master):
 
             cells = request['params']['cellsAsHex']
             coor = decode_coor(request['params']['playerLocation'])
-            for each in cells:
-                cell = database.GEOCell()
-                cell.latE6 = coor[0]
-                cell.lngE6 = coor[1]
-                cell.cell = each
-                self.session.merge(cell)
-                self.session.commit()
+            cnt = self.session.query(database.GEOCell)\
+                    .filter(coor[0]-300 < database.GEOCell.latE6)\
+                    .filter(database.GEOCell.latE6 < coor[0]+300)\
+                    .filter(coor[1]-400 < database.GEOCell.lngE6)\
+                    .filter(database.GEOCell.lngE6 < coor[1]+400).count()
+            if cnt == 0:
+                for each in cells:
+                    cell = database.GEOCell()
+                    cell.latE6 = coor[0]
+                    cell.lngE6 = coor[1]
+                    cell.cell = each
+                    self.session.merge(cell)
+                    self.session.commit()
 
             if self.portals:
-                portal = self.portals.pop()
+                while self.portals:
+                    portal = self.portals.pop()
+                    cnt = self.session.query(database.GEOCell)\
+                            .filter(portal.latE6-300 < database.GEOCell.latE6)\
+                            .filter(database.GEOCell.latE6 < portal.latE6+300)\
+                            .filter(portal.LngE6-400 < database.GEOCell.lngE6)\
+                            .filter(database.GEOCell.lngE6 < portal.LngE6+400).count()
+                    if cnt == 0:
+                        break
+
                 print 'goto %s,%s, %d togo' % (portal.latE6, portal.lngE6, len(self.portals))
                 urllib2.urlopen("http://127.0.0.1:9292/adb/geo_location?latitude=%f&longitude=%f"\
                         % (portal.latE6*1e-6, portal.lngE6*1e-6))

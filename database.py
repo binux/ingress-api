@@ -10,6 +10,8 @@ from sqlalchemy import Column, Integer, String, UniqueConstraint
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
+import utils
+
 Base = declarative_base()
 
 class Portal(Base):
@@ -23,6 +25,10 @@ class Portal(Base):
     level = Column(Integer)
     energy = Column(Integer)
     ignore = Column(Integer, default=0)
+
+    @property
+    def latlng(self):
+        return utils.LatLng(self.latE6*1e-6, self.lngE6*1e-6)
 
     def __repr__(self):
         return '<Portal#%s %s+%d @%f,%f>' % (self.guid, self.control, self.level, self.latE6*1e-6, self.lngE6*1e-6)

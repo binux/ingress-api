@@ -22,6 +22,8 @@ areas = {
         'congqing.kmz': [29175535,106012398,30136209,107209907],
         'cengdu.kmz': [30500149,103837105,30820284,104298530],
         'nanjing.kmz': [31910505,118615527,32188697,118939624],
+        'zhengzhou.kmz': [34640644,113487396,34888839,113831405],
+        'taiyuan.kmz': [37635664,112425842,37944960,112793884],
         }
 styles = {
         'ALIENS_0_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/blank.PNG',
