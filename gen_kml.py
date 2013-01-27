@@ -92,7 +92,10 @@ for key, value in list(styles.items()):
     tmp = simplekml.Style()
     tmp.iconstyle.icon.href = value
     styles[key] = tmp
-_cookie = 'csrftoken=RmpnA15LTtkoPTC1hxeMMvhTCeLhTIIn; ACSID=AJKiYcGs3b-47hcoHR18HyvocTAKIssvuo-STX4wDT8fIvnytePkUdrCq3VIGqDKco8cP2HJk-0WJ9FhlUtdCv3cNnMHE_44FV5jRsoL5v83ySpKQmHCrWfPZIHJXg-ak1HjAh3sgWQO6nzlwRrPDDZHOzH8xsCcRzvcTdt5JL68c7yboxQtlheJlQhWsIlwhxMfxnAyXR8QQI9sqwmSLlVw_C6x9x7-aFmljtnEhSsEJbwNl2qS-oqlbmUVutwL-W3IZdJfz59PyQJnzCtNUFj4NAtNHlWWBShtuRTA4w7UKDQeTmOXpGWsyI5zIsyH-xEscTJXIBNfBDGbXXYC1yy3yeXgZjXT9t4BEyuhSZoGOFs4cqG3dEJuWsDa9q34VC5QARLWfKRsS7MU9O2GuOu-j7s7E3griixP8sXYRHjwsaxSRWPHgXbMdF9G0Mm4bOKrtbbwN99r2ZZVA7lrb8OqKF2w5ajd1bEb72AFMNculsAlutayQwpRAVfp6mG59N6UomcwmBQ9SaZGPipmcMfbDkmK1zG44rbU28fjin5-U2LipP2KrQ3o4QlLON0p4R7ZKTuglN6sWepkeRaF2zCAHc1vlU8u3w;'
+try:
+    _cookie = open('cookie.web').read()
+except:
+    _cookie = None
 
 
 def get_level(info):
