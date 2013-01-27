@@ -21,9 +21,9 @@ something = """
 .##.....##.##.......##.......##.......##.....##....##..##..##.##.....##.##....##..##.......##.....##....####
 .##.....##.########.########.########..#######......###..###...#######..##.....##.########.########.....####
 """
-start_at = utils.LatLng(39.9943428, 116.3864975)
-i_meter = 2
-j_meter = 2
+start_at = utils.LatLng(39.9943428, 116.3864975).goto(270, 200)
+i_meter = 4
+j_meter = 4
 
 ingress = ingress.Ingress()
 ingress.login()
@@ -70,15 +70,25 @@ for char, cnt in chars.iteritems():
 
 logging.info('drawing...')
 for i, line in enumerate(reversed(something.splitlines())):
+    logging.info(line)
     if i % 2:
-        line = reversed(line)
+        line = list(reversed(line))
     for _j, char in enumerate(line):
-        if i % 2:
-            j = len(line) - _j - 1
-        pen = char_pen_map[char]
-        if not pen:
-            continue
-        guid = pens[pen].pop()
-        pos = start_at.goto(0, i*i_meter).goto(90, j*j_meter)
-        ingress.goto(pos)
-        ingress.drop(guid)
+        try:
+            if i % 2:
+                j = len(line) - _j - 1
+            else:
+                j = _j
+            pen = char_pen_map[char]
+            if not pen:
+                continue
+            guid = pens[pen].pop()
+            pos = start_at.goto(0, i*i_meter).goto(90, j*j_meter)
+            logging.info('%s -> %s#%s @%s' % (char, pen, guid, pos))
+            ingress.goto(pos)
+            ingress.drop(guid)
+        except Exception, e:
+            logging.exception(e)
+            import IPython; IPython.embed()
+        except KeyboardInterrupt:
+            import IPython; IPython.embed()
