@@ -198,7 +198,7 @@ class Ingress(object):
             return {}
 
         ret2 = self.api.gameplay_getObjectsInCells(
-                cells,
+                [self.fake_cell, ],
                 [self.knobSyncTimestamp, ]*len(cells),
                 energyGlobGuids=nearby['energyGlobGuids'][:self.energyGlobGuids_limit],
                 knobSyncTimestamp=self.knobSyncTimestamp,
