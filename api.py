@@ -286,7 +286,7 @@ class IngressDashboradAPI(object):
     def getThinnedEntitiesV2(self, minLat, minLng, maxLat, maxLng, split=False, minLevelOfDetail=-1):
         assert self.xsrf
 
-        qk = 233
+        qk = minLat ^ minLng
         bounds = []
         if split:
             for lat in xrange(minLat, maxLat, self.lat_split):
