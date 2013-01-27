@@ -32,6 +32,8 @@ class Item(object):
             return '<Resonator+%d>' % self.level
         elif self.type == 'RES_SHIELD':
             return '<Shield:%s>' % self.rarity
+        elif self.type == 'MEDIA':
+            return '<Media+%d>' % self.level
         else:
             return repr(self.info)
 
@@ -120,8 +122,6 @@ class Ingress(object):
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
-        if ret.get('error'):
-            logging.error(ret['error'])
         return ret
 
     def collect_xm(self):

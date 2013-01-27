@@ -90,8 +90,29 @@ class LatLng(object):
     def __sub__(self, other):
         return self.distance_to(other)
 
+    def __eq__(self, other):
+        return self.lat == other.lat and self.lng == other.lng
+
+    def to_pixel(self, zoom):
+        'zoom 11 to 18'
+        siny = cmath.sin(to_rad(self.lat))
+        y = cmath.log((1 + siny) / (1 - siny));
+        lat = (128 << zoom) * (1 - y / (2 * PI));
+
+        lng = (self.lng + 180.0) * (256 << zoom) / 360.0
+        return lat.real, lng
+
+    def from_pixel(self, lat, lng, zoom):
+        lat = 2 * PI * (1 - lat / (128 << zoom))
+        lat = cmath.exp(lat)
+        lat = (lat - 1) / (lat + 1)
+        self.lat = (cmath.asin(lat) * 180 / PI).real
+        self.lng = lng * 360.0 / (256 << zoom) - 180.0
+        return self
+
 if __name__ == '__main__':
     assert int(LatLng(40, 116).distance_to(LatLng(35, 147))) == 2775934
     assert int(LatLng(40, 116) - LatLng(35, 147)) == 2775934
     assert int(LatLng(40, 116).bearing_to(LatLng(35, 147))) == 91
     assert LatLng(40, 116).goto(LatLng(35, 147), 2775934) - LatLng(35, 147) < 1000
+    assert LatLng(0, 0).from_pixel(*LatLng(40, 116).to_pixel(zoom=18), zoom=18)# == LatLng(40, 16)

@@ -78,6 +78,24 @@ shield: {
             }
         }
     }
+media: {
+    u'inInventory': {
+        u'playerId': u'549cc411fd4a4e8f83f61e67114e24a2.c',
+        u'acquisitionTimestampMs': u'1359261664951'
+        },
+    u'resourceWithLevels': {
+        u'resourceType': u'MEDIA',
+        u'level': 4
+        },
+    u'storyItem': {
+        u'hasBeenViewed': False,
+        u'shortDescription': u'Gone',
+        u'primaryUrl': u'http://commondatastorage.googleapis.com/objx/lrg/abductedc.jpg'
+        },
+    u'imageByUrl': {
+        u'imageUrl': u'http://commondatastorage.googleapis.com/objx/thmb/classified.png'
+        }
+    }
 
 
   u'levelUp': {u'newLevelUpMsgId': 10},
