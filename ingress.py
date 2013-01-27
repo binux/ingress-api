@@ -129,8 +129,10 @@ class Ingress(object):
         sw = self.latlng.goto(225, 100)
         ne = self.latlng.goto(45, 100)
         cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
-                    .filter(sw.lat*1e6 < database.GEOCell.latE6 < ne.lat*1e6)\
-                    .filter(sw.lng*1e6 < database.GEOCell.lngE6 < ne.lng*1e6).limit(40).all()]))
+                    .filter(sw.lat*1e6 < database.GEOCell.latE6)\
+                    .filter(database.GEOCell.latE6 < ne.lat*1e6)\
+                    .filter(sw.lng*1e6 < database.GEOCell.lngE6)\
+                    .filter(database.GEOCell.lngE6 < ne.lng*1e6).limit(40).all()]))
         if not cells:
             return {}
 
