@@ -6,7 +6,7 @@
 # Created on 2013-01-25 23:13:54
 
 import time
-import numpy
+#import numpy
 import cmath
 import random
 import logging
