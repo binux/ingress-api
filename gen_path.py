@@ -9,7 +9,8 @@ import time
 import numpy
 import cmath
 import random
-import Pycluster
+import logging
+#import Pycluster
 
 import utils
 import database
@@ -64,7 +65,8 @@ class find_path(object):
     def __call__(self, portals):
         random.shuffle(portals)
         self.current = list(portals)
-        self.current_len = sum((self.distance(p1, p2) for p1, p2 in zip(portals, portals[1:])))
+        self.current_len = sum((self.distance(p1, p2) for p1, p2 in zip(portals, portals[1:])))\
+                                + self.distance(portals[0], portals[-1])
         self.best = list(self.current)
         self.best_len = self.current_len
 
@@ -104,7 +106,7 @@ class find_path(object):
                 not_changed_cnt = 0
 
             temperature = self.DROP_TEMPERATURE*temperature
-            print i, self.best_len
+            logging.debug('%s %s' % (i, self.best_len))
 
         return self.best
 
@@ -120,9 +122,9 @@ class find_path(object):
         i, j = sorted(random.sample(xrange(len(self.current)), 2))
         status = self.current[:i]+list(reversed(self.current[i:j]))+self.current[j:]
         nlen = self.current_len\
-                - (self.distance(self.current[i-1], self.current[i]) if i > 0 else 0)\
+                - self.distance(self.current[i-1], self.current[i])\
                 - self.distance(self.current[j-1], self.current[j])\
-                + (self.distance(self.current[i-1], self.current[j-1]) if i > 0 else 0)\
+                + self.distance(self.current[i-1], self.current[j-1])\
                 + self.distance(self.current[j], self.current[i])
         #_nlen = sum((self.distance(p1, p2) for p1, p2 in zip(status, status[1:])))
         #assert abs(nlen - _nlen) < 1, (i, j, nlen, _nlen, nlen-_nlen)

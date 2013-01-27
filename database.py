@@ -25,7 +25,7 @@ class Portal(Base):
     ignore = Column(Integer, default=0)
 
     def __repr__(self):
-        return '<Portal:%s:L%d @%f,%f>' % (self.guid, self.level, self.latE6*1e-6, self.lngE6*1e-6)
+        return '<Portal#%s %s+%d @%f,%f>' % (self.guid, self.control, self.level, self.latE6*1e-6, self.lngE6*1e-6)
 
 class GEOCell(Base):
     __tablename__ = 'geo_cell'
