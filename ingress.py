@@ -192,14 +192,32 @@ class Ingress(object):
         return ret.get('gameBasket', {})
 
     def collect_xm(self, nearby=None):
+        sw = self.latlng.goto(225, meters)
+        ne = self.latlng.goto(45, meters)
+        cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
+                    .filter(sw.lat*1e6 < database.GEOCell.latE6)\
+                    .filter(database.GEOCell.latE6 < ne.lat*1e6)\
+                    .filter(sw.lng*1e6 < database.GEOCell.lngE6)\
+                    .filter(database.GEOCell.lngE6 < ne.lng*1e6).limit(40).all()]))
+        if not cells:
+            return {}
+
+        ret = self.api.gameplay_getObjectsInCells(
+                cells,
+                [0, ]*len(cells),
+                knobSyncTimestamp=self.knobSyncTimestamp,
+                playerLocation=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        nearby = ret.get('gameBasket', {})
+
         if nearby is None:
             nearby = self.scan()
         if not nearby.get('energyGlobGuids'):
             return {}
 
         ret2 = self.api.gameplay_getObjectsInCells(
-                [self.fake_cell, ],
-                [self.knobSyncTimestamp, ],
+                cells,
+                [self.knobSyncTimestamp, ]*len(cells),
                 energyGlobGuids=nearby['energyGlobGuids'][:self.energyGlobGuids_limit],
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
