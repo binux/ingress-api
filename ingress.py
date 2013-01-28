@@ -191,7 +191,7 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret.get('gameBasket', {})
 
-    def collect_xm(self, nearby=None):
+    def collect_xm(self, meters=100):
         sw = self.latlng.goto(225, meters)
         ne = self.latlng.goto(45, meters)
         cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
