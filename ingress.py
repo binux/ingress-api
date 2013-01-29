@@ -29,6 +29,7 @@ class Item(object):
 
     @property
     def type(self):
+        """PORTAL_LINK_KEY, EMP_BURSTER, EMITTER_A, RES_SHIELD, MEDIA"""
         info = self.info
         return (info.get('resource')\
                     or info.get('resourceWithLevels')\
@@ -118,6 +119,87 @@ class Portal(object):
     def resonators(self):
         return self.info.get('resonatorArray', {}).get('resonators', [])
 
+    @property
+    def full(self):
+        full = True
+        for res in self.resonators:
+            if not res:
+                full = False
+                break
+        return full
+
+    @property
+    def level(self):
+        return sum([x['level'] if x else 0 for x in self.resonators]) / 8.0
+
+    @property
+    def energy(self):
+        return sum([x['energyTotal'] if x else 0 for x in self.resonators])
+
+class Bag(object):
+    def __init__(self):
+        self.inventory = {}
+        self.group = {}
+        self.get = self.inventory.get
+        self.keys = self.group
+
+    def _group(self, item):
+        type = item.type
+        if type in ('EMP_BURSTER', 'EMITTER_A', 'MEDIA', ):
+            return '%s|%s' % (type, item.level)
+        elif type in ('RES_SHIELD', ):
+            return '%s|%s' % (type, item.mitigation)
+        elif type in ('PORTAL_LINK_KEY', ):
+            return type
+        else:
+            return 'UNKNOW'
+
+    def add(self, item):
+        self.inventory[item.guid] = item
+        group = self._group(item)
+        self.group.setdefault(group, []).append(item.guid)
+
+    def rm(self, guid):
+        if guid not in self.inventory:
+            return
+        item = self.inventory[guid]
+        group = self._group(item)
+        del self.inventory[guid]
+        self.group[group].remove(guid)
+
+    def get_by_group(self, group, adding=None):
+        if '|' in group:
+            guid = self.group.get(group) and self.group[group][0]
+            if not guid:
+                return
+            return self.inventory[guid]
+
+        if not adding:
+            if group in ('EMP_BURSTER', 'MEDIA', ):
+                for i in xrange(8, 0, -1):
+                    if self.group.get('%s|%s' % (group, i)):
+                        guid = self.group['%s|%s' % (group, i)][0]
+                        return self.inventory[guid]
+            elif group in ('RES_SHIELD', 'EMITTER_A', ):
+                for i in xrange(1, 11):
+                    if self.group.get('%s|%s' % (group, i)):
+                        guid = self.group['%s|%s' % (group, i)][0]
+                        return self.inventory[guid]
+            elif group == 'PORTAL_LINK_KEY':
+                for guid in self.group[group]:
+                    if self.inventory[guid].portal_guid == adding:
+                        return self.inventory[guid]
+        else:
+            if group == 'PORTAL_LINK_KEY' and self.group.get(group):
+                return self.group[group][0]
+            else:
+                return self.get_by_group('%s|%s' % (group, adding))
+
+        return None
+
+    def __len__(self):
+        return len(self.inventory)
+
 class Ingress(object):
     hack_range = 40
     energyGlobGuids_limit = 100
@@ -130,6 +212,8 @@ class Ingress(object):
         self.arrive_time = 0
         self.speed_limit = speed_limit
         self.session = database.Session()
+        self.bag = Bag()
+        self.inventory_update = 0
 
         self.nickname = None
         self.player_id = None
@@ -137,6 +221,15 @@ class Ingress(object):
         self.player_info = {}
         self.max_energy = 0
         self.knobSyncTimestamp = 0
+
+    ap_level = reversed([0, 1, 3, 7, 15, 30, 60, 120])
+    @property
+    def player_level(self):
+        ap = int(self.player_info.get('ap', 0)) / 10000.0
+        for i, need_ap in enumerate(self.ap_level):
+            if ap >= need_ap:
+                return 8-i
+        return 0
 
     def login(self, cookie=None):
         #load default cookie
@@ -156,13 +249,13 @@ class Ingress(object):
         #u'energyState': u'XM_OK',
         self.player_info = ret['result']['playerEntity'][2]['playerPersonal']
         self.max_energy = max(3000, self.player_info['energy'])
-        self.inventory = {}
-        self.inventory_update = 0
         if ret['result']['pregameStatus']['dialogText']:
             logging.error(ret['result']['pregameStatus'] )
             raise Exception
 
     def goto(self, to, wait=True):
+        if hasattr(to, 'latlng'):
+            to = to.latlng
         if not self.latlng:
             self.latlng = to
             return 0
@@ -195,7 +288,7 @@ class Ingress(object):
 
     def hack(self, portal):
         assert self.latlng
-        if utils.LatLng(portal.latE6*1e-6, portal.lngE6*1e-6) - self.latlng > self.hack_range:
+        if portal.latlng - self.latlng > self.hack_range:
             return None
         ret = self.api.gameplay_collectItemsFromPortal(
                 portal.guid,
@@ -214,7 +307,7 @@ class Ingress(object):
                     .filter(sw.lng*1e6 < database.GEOCell.lngE6)\
                     .filter(database.GEOCell.lngE6 < ne.lng*1e6).limit(40).all()]))
         if not cells:
-            return {}
+            return []
 
         ret = self.api.gameplay_getObjectsInCells(
                 cells,
@@ -223,12 +316,56 @@ class Ingress(object):
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
         result = []
-        for guid, _, info in ret.get('gameEntities', []):
+        for guid, _, info in ret.get('gameBasket', {}).get('gameEntities', []):
             if Item.is_item(info):
                 result.append(Item(guid, info))
             elif Portal.is_portal(info):
                 result.append(Portal(guid, info))
         return result
+
+    def deploy(self, item, portal, slot=255):
+        if isinstance(item, Item):
+            item = item.guid
+        if isinstance(portal, Portal):
+            return portal.guid
+        if isinstance(item, basestring):
+            item = [item, ]
+        ret = self.api.gameplay_deployResonatorV2(
+                item,
+                portal,
+                slot,
+                knobSyncTimestamp=self.knobSyncTimestamp,
+                location=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        return ret
+
+    def upgrade(self, item, portal, slot):
+        if isinstance(item, Item):
+            item = item.guid
+        if isinstance(portal, Portal):
+            return portal.guid
+        ret = self.api.gameplay_upgradeResonatorV2(
+                item,
+                portal,
+                slot,
+                knobSyncTimestamp=self.knobSyncTimestamp,
+                location=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        return ret
+
+    def add_mod(self, item, portal, index=0):
+        if isinstance(item, Item):
+            item = item.guid
+        if isinstance(portal, Portal):
+            return portal.guid
+        ret = self.api.gameplay_addMod(
+                item,
+                portal,
+                index,
+                knobSyncTimestamp=self.knobSyncTimestamp,
+                playerLocation=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        return ret
 
     def collect_xm(self, meters=100):
         sw = self.latlng.goto(225, meters)
@@ -262,25 +399,23 @@ class Ingress(object):
         return ret2
 
     def drop(self, item):
+        if isinstance(item, Item):
+            item = item.guid
         ret = self.api.gameplay_dropItem(
                 item,
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
-    def pickup(self, nearby=None):
-        if nearby is None:
-            nearby = self.scan()
-        items = []
-        for item in nearby:
-            if isinstance(item, Item) and item.latlng - self.latlng <= self.pickup_limit:
-                ret = self.api.gameplay_pickUp(
-                        item.guid,
-                        knobSyncTimestamp=self.knobSyncTimestamp,
-                        playerLocation=self.at())
-                self.updateGameBasket(ret.get('gameBasket'))
-                for _guid, _, _info in ret.get('gameBasket', {}).get('inventory', []):
-                    items.append(self.inventory.get(_guid) or Item(guid, _info))
+    def pickup(self, item):
+        if item.latlng - self.latlng <= self.pickup_limit:
+            ret = self.api.gameplay_pickUp(
+                    item.guid,
+                    knobSyncTimestamp=self.knobSyncTimestamp,
+                    playerLocation=self.at())
+            self.updateGameBasket(ret.get('gameBasket'))
+            for _guid, _, _info in ret.get('gameBasket', {}).get('inventory', []):
+                items.append(self.bag.get(_guid) or Item(guid, _info))
         return items
 
     def updateGameBasket(self, basket):
@@ -292,12 +427,20 @@ class Ingress(object):
             self.player_info = basket['playerEntity'][2]['playerPersonal']
             self.max_energy = max(self.max_energy, self.player_info['energy'])
         if basket.get('deletedEntityGuids'):
-            for each in basket['deletedEntityGuids']:
-                if each in self.inventory:
-                    del self.inventory[each]
+            for guid in basket['deletedEntityGuids']:
+                self.bag.rm(guid)
         if basket.get('inventory'):
             for guid, uptime, info in basket['inventory']:
-                self.inventory[guid] = Item(guid, info)
+                self.bag.add(Item(guid, info))
+        if basket.get('levelUp'):
+            level_up_msg = basket['levelUp']['newLevelUpMsgId']
+            if getattr(self, '_level_up_msg', 0) != level_up_msg:
+                self._level_up_msg = level_up_msg
+                self.api.player_levelUp(self, level_up_msg)
+        for each in basket.get('apGains', []):
+            logging.info('%s +%saps' % (each['apTrigger'], each['apGainAmount']))
+        for each in basket.get('playerDamages', []):
+            logging.warning('%s -%sxms' % (each['weaponSerializationTag'], each['damageAmount']))
 
     def update_inventory(self):
         ret = self.api.playerUndecorated_getInventory(self.inventory_update)

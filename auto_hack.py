@@ -26,6 +26,7 @@ COOLDOWN_MSG = {u'gameBasket': {u'deletedEntityGuids': [],
 if __name__ == '__main__':
     ingress = ingress.Ingress()
     ingress.login()
+    ingress.update_inventory()
     logging.info('query portals...')
     portals = ingress.session.query(database.Portal).filter(database.Portal.ignore == 0).all()
     logging.info('gen path...')
@@ -49,10 +50,12 @@ if __name__ == '__main__':
         if not _continue:
             break
         try:
+            # move
             need_time = ingress.goto(portal.latlng, wait=False)
             logging.info('goto %s need %ds' % (portal, need_time))
             need_time = ingress.goto(portal.latlng)
 
+            # hack
             hack = ingress.hack(portal)
             if hack == COOLDOWN_MSG:
                 start_time = time.time()
@@ -60,23 +63,30 @@ if __name__ == '__main__':
                     logging.error('cooldown +%ds' % (time.time()-start_time+30))
                     time.sleep(30)
                     hack = ingress.hack(portal)
-
-            if _debug and hack.get('gameBasket'):
-                if hack['gameBasket'].get('apGains'):
-                    import IPython; IPython.embed()
-                elif hack['gameBasket'].get('playerDamages'):
-                    import IPython; IPython.embed()
-
             if hack.get('error'):
                 logging.error(hack.get('error'))
             else:
-                game_basket = hack.get('gameBasket', {})
-                for each in game_basket.get('apGains', []):
-                    logging.info('%s +%saps' % (each['apTrigger'], each['apGainAmount']))
-                for each in game_basket.get('playerDamages', []):
-                    logging.warning('%s -%sxms' % (each['weaponSerializationTag'], each['damageAmount']))
                 for each in hack['result']['addedGuids']:
-                    logging.info(ingress.inventory[each])
+                    logging.info('hacked %s' % ingress.bag.get(each))
+
+            # auto pick and upgrade
+            nearby = ingress.scan()
+            for each in nearby:
+                if isinstance(each, ingress.Item)\
+                        and each.type in ('PORTAL_LINK_KEY', 'RES_SHIELD', ):
+                    for each in self.pickup(each):
+                        logging.info('pickup %s' % each)
+                elif isinstance(each, ingress.Portal)\
+                        and each.guid == portal.guid:
+                    #current portal try upgrade / install mod
+                    portal = each
+                    if portal.full:
+                        for res in portal.resonators:
+                            for i in range(res['level']+1, ingress.player_level):
+                                item = ingress.bag.get_by_group('EMP_BURSTER', i)
+                                if not item:
+                                    continue
+                                ingress.upgrade(item, portal, res['slot'])
 
             if ingress.player_info['energyState'] != 'XM_OK'\
                     or ingress.player_info['energy'] < max(ingress.max_energy * 0.5, 500):

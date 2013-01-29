@@ -122,6 +122,9 @@ class IngressAPI(object):
     def playerUndecorated_getNickNamesFromPlayerIds(self, playerid):
         return self._call_proxy()
 
+    def playerUndecorated_redeemReward(self, passcode):
+        return self.call('playerUndecorated_redeemReward', passcode) 
+
     def gameplay_getObjectsInCells(self,
             cellsAsHex,
             dates,
@@ -183,6 +186,16 @@ class IngressAPI(object):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
 
+    def gameplay_deployResonatorV2(self,
+            itemGuids,
+            portalGuid,
+            preferredSlot=255,
+            location=None,
+            energyGlobGuids=[],
+            knobSyncTimestamp=0):
+        location = self.hex_location(location)
+        return self._call_proxy()
+
     def gameplay_upgradeResonatorV2(self,
             emitterGuid,
             portalGuid,
@@ -193,12 +206,25 @@ class IngressAPI(object):
         location = self.hex_location(location)
         return self._call_proxy()
 
+    def gameplay_rechargeResonatorsV2(self,
+            portalGuid,
+            portalKeyGuid=None,
+            location=None,
+            resonatorSlots=[0,1,2,3,4,5,6,7],
+            energyGlobGuids=[],
+            knobSyncTimestamp=0):
+        location = self.hex_location(location)
+        return self._call_proxy()
+
     def player_say(self,
             message,
             factionOnly=False,
             playerLocation=None):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
+
+    def player_levelUp(self, level):
+        return self.call('player_levelUp', level)
 
 class Ze(object):
     """
