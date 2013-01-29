@@ -23,7 +23,8 @@ class Item(object):
             return True
         return False
 
-    def __init__(self, info):
+    def __init__(self, guid, info):
+        self.guid = guid
         self.info = info
 
     @property
@@ -75,7 +76,14 @@ class Item(object):
             return repr(self.info)
 
 class Portal(object):
-    def __init__(self, info):
+    @staticmethod
+    def  is_portal(info):
+        if 'portalV2' in info:
+            return True
+        return False
+
+    def __init__(self, guid, info):
+        self.guid = guid
         self.info = info
 
     @property
@@ -84,6 +92,31 @@ class Portal(object):
         if not location:
             return None
         return utils.LatLng(location['latE6']*1e-6, location['lngE6']*1e-6)
+
+    @property
+    def controlling(self):
+        return self.info['controllingTeam']['team']
+
+    @property
+    def image(self):
+        return self.info.get('imageByUrl', {}).get('imageUrl')
+
+    @property
+    def title(self):
+        info = self.info.get('portalV2')
+        return info['descriptiveText']['TITLE']
+
+    @property
+    def links(self):
+        return self.info.get('linkedEdges', [])
+
+    @property
+    def mods(self):
+        return self.info.get('linkedModArray', [])
+
+    @property
+    def resonators(self):
+        return self.info.get('resonatorArray', {}).get('resonators', [])
 
 class Ingress(object):
     hack_range = 40
@@ -189,7 +222,13 @@ class Ingress(object):
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
-        return ret.get('gameBasket', {})
+        result = []
+        for guid, _, info in nearby.get('gameEntities', []):
+            if Item.is_item(info):
+                result.append(Item(guid, info))
+            elif Portal.is_portal(info):
+                result.append(Portal(guid, info))
+        return result
 
     def collect_xm(self, meters=100):
         sw = self.latlng.goto(225, meters)
@@ -209,9 +248,6 @@ class Ingress(object):
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
         nearby = ret.get('gameBasket', {})
-
-        if nearby is None:
-            nearby = self.scan()
         if not nearby.get('energyGlobGuids'):
             return {}
 
@@ -236,18 +272,15 @@ class Ingress(object):
         if nearby is None:
             nearby = self.scan()
         items = []
-        for guid, _, info in nearby.get('gameEntities', []):
-            if Item.is_item(info):
-                item = Item(info)
-                if self.latlng - item.latlng > self.pickup_limit:
-                    continue
+        for item in nearby:
+            if isinstance(item, Item) and item.latlng - self.latlng <= self.pickup_limit:
                 ret = self.api.gameplay_pickUp(
-                        guid,
+                        item.guid,
                         knobSyncTimestamp=self.knobSyncTimestamp,
                         playerLocation=self.at())
                 self.updateGameBasket(ret.get('gameBasket'))
                 for _guid, _, _info in ret.get('gameBasket', {}).get('inventory', []):
-                    items.append(self.inventory.get(_guid) or Item(_info))
+                    items.append(self.inventory.get(_guid) or Item(guid, _info))
         return items
 
     def updateGameBasket(self, basket):
@@ -264,7 +297,7 @@ class Ingress(object):
                     del self.inventory[each]
         if basket.get('inventory'):
             for guid, uptime, info in basket['inventory']:
-                self.inventory[guid] = Item(info)
+                self.inventory[guid] = Item(guid, info)
 
     def update_inventory(self):
         ret = self.api.playerUndecorated_getInventory(self.inventory_update)
