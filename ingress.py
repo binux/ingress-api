@@ -223,7 +223,7 @@ class Ingress(object):
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
         result = []
-        for guid, _, info in nearby.get('gameEntities', []):
+        for guid, _, info in ret.get('gameEntities', []):
             if Item.is_item(info):
                 result.append(Item(guid, info))
             elif Portal.is_portal(info):
