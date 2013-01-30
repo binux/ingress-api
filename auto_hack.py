@@ -51,9 +51,10 @@ if __name__ == '__main__':
             break
         try:
             # move
-            need_time = ingress.goto(portal.latlng, wait=False)
+            need_time = ingress.goto(portal, wait=False)
             logging.info('goto %s need %ds' % (portal, need_time))
-            need_time = ingress.goto(portal.latlng)
+            ingress.target = portal
+            need_time = ingress.goto(portal)
 
             # hack
             hack = ingress.hack(portal)
@@ -69,61 +70,56 @@ if __name__ == '__main__':
                 for each in hack['result']['addedGuids']:
                     logging.info('hacked %s' % ingress.bag.get(each))
 
-            # auto pick and upgrade
-            nearby = ingress.scan()
-            for each in nearby:
-                if isinstance(each, _ingress.Item)\
-                        and each.type in ('PORTAL_LINK_KEY', 'RES_SHIELD', ):
-                    for each in ingress.pickup(each):
-                        logging.info('pickup %s' % each)
-                elif isinstance(each, _ingress.Portal)\
-                        and each.guid == portal.guid:
-                    ingress.target = each
-                    if each.controlling == ingress.player_team:
-                        # install mod
-                        for i, mod in enumerate(ingress.target.mods):
-                            if mod is not None:
-                                continue
-                            item = ingress.bag.get_by_group('RES_SHIELD')
-                            if not item:
-                                continue
-                            ret = ingress.add_mod(item, index=i)
-                            if ret.get('error'):
-                                logging.error(ret.get('error'))
-
-                        # upgrade
-                        if not ingress.target.full:
-                            continue
-                        res_limit = list(ingress.res_limit)
-                        for res in ingress.target.resonators:
-                            if res['ownerGuid'] == ingress.player_id:
-                                res_limit[res['level']] -= 1
-                        for i, res in enumerate(ingress.target.resonators):
-                            if res['ownerGuid'] == ingress.player_id:
-                                continue
-                            if res['level'] >= ingress.player_level:
-                                continue
-                            for j in range(res['level']+1, ingress.player_level+1):
-                                if res_limit[j] <= 0:
-                                    continue
-                                item = ingress.bag.get_by_group('EMITTER_A', j)
-                                if not item:
-                                    continue
-                                ret = ingress.upgrade(item, slot=i)
-                                if ret.get('error'):
-                                    logging.error(ret.get('error'))
-                                else:
-                                    res_limit[j] -= 1
-                                break
-
+            # collect xm
             if ingress.player_info['energyState'] != 'XM_OK'\
-                    or ingress.player_info['energy'] < max(ingress.max_energy * 0.5, 500):
+                    or ingress.max_energy - ingress.player_info['energy'] < 1000:
                 orig_energy = ingress.player_info['energy']
                 #nearby = ingress.scan()
                 xm = ingress.collect_xm()
                 #for each in ingress.pickup(nearby):
                     #logging.info('pickup %r' % each)
                 logging.warning('energy +%d' % (ingress.player_info['energy'] - orig_energy))
+
+            # auto pick and upgrade
+            if isinstance(ingress.target, _ingress.Portal):
+                if ingress.target.controlling == ingress.player_team:
+                    # install mod
+                    for i, mod in enumerate(ingress.target.mods):
+                        if mod is not None:
+                            continue
+                        item = ingress.bag.get_by_group('RES_SHIELD')
+                        if not item:
+                            continue
+                        ret = ingress.add_mod(item, index=i)
+                        if ret.get('error'):
+                            logging.error(ret.get('error'))
+
+                    # upgrade
+                    if not ingress.target.full:
+                        continue
+                    res_limit = list(ingress.res_limit)
+                    for res in ingress.target.resonators:
+                        if res['ownerGuid'] == ingress.player_id:
+                            res_limit[res['level']] -= 1
+                    for i, res in enumerate(ingress.target.resonators):
+                        if res['ownerGuid'] == ingress.player_id:
+                            continue
+                        if res['level'] >= ingress.player_level:
+                            continue
+                        for j in range(res['level']+1, ingress.player_level+1):
+                            if res_limit[j] <= 0:
+                                continue
+                            item = ingress.bag.get_by_group('EMITTER_A', j)
+                            if not item:
+                                continue
+                            ret = ingress.upgrade(item, slot=i)
+                            if ret.get('error'):
+                                logging.error(ret.get('error'))
+                            else:
+                                res_limit[j] -= 1
+                            break
+
+
         except Exception, e:
             logging.exception(e)
             if _debug:

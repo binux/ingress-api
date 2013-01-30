@@ -139,7 +139,7 @@ class Portal(object):
         return sum([x['energyTotal'] if x else 0 for x in self.resonators])
 
     def __repr__(self):
-        return '<Portal#%s +%d @%s>' % (self.guid, self.level, self.latlng)
+        return '<Portal#%s %s+%d @%s,%s>' % (self.guid, self.controlling, self.level, self.latlng.lat, self.latlng.lng)
 
 class Bag(object):
     PORTAL_LINK_KEY = PORTAL_KEY = 'PORTAL_LINK_KEY'
