@@ -74,7 +74,7 @@ if __name__ == '__main__':
             for each in nearby:
                 if isinstance(each, _ingress.Item)\
                         and each.type in ('PORTAL_LINK_KEY', 'RES_SHIELD', ):
-                    for each in self.pickup(each):
+                    for each in ingress.pickup(each):
                         logging.info('pickup %s' % each)
                 elif isinstance(each, _ingress.Portal)\
                         and each.guid == portal.guid:
