@@ -31,7 +31,7 @@ class Portal(Base):
         return utils.LatLng(self.latE6*1e-6, self.lngE6*1e-6)
 
     def __repr__(self):
-        return '<Portal#%s %s+%d @%f,%f>' % (self.guid, self.control, self.level, self.latE6*1e-6, self.lngE6*1e-6)
+        return '<DBPortal#%s %s+%d @%f,%f>' % (self.guid, self.control, self.level, self.latE6*1e-6, self.lngE6*1e-6)
 
 class GEOCell(Base):
     __tablename__ = 'geo_cell'
