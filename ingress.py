@@ -109,11 +109,13 @@ class Portal(object):
 
     @property
     def links(self):
-        return self.info.get('linkedEdges', [])
+        info = self.info.get('portalV2')
+        return info.get('linkedEdges', [])
 
     @property
     def mods(self):
-        return self.info.get('linkedModArray', [])
+        info = self.info.get('portalV2')
+        return info.get('linkedModArray', [])
 
     @property
     def resonators(self):
@@ -136,7 +138,16 @@ class Portal(object):
     def energy(self):
         return sum([x['energyTotal'] if x else 0 for x in self.resonators])
 
+    def __repr__(self):
+        return '<Portal#%s +%d @%s>' % (self.guid, self.level, self.latlng)
+
 class Bag(object):
+    PORTAL_LINK_KEY = PORTAL_KEY = 'PORTAL_LINK_KEY'
+    EMP_BURSTER = BURSTER = EMP_BURSTER
+    EMITTER_A = RES = RESONATOR = 'EMITTER_A'
+    RES_SHIELD = SHIELD = 'RES_SHIELD'
+    MEDIA = 'MEDIA'
+
     def __init__(self):
         self.inventory = {}
         self.group = {}
@@ -205,6 +216,7 @@ class Ingress(object):
     energyGlobGuids_limit = 100
     pickup_limit = 40
     fake_cell = '358b400000000000'
+    res_limit = [8, 4, 4, 4, 2, 2, 1, 1, ]
 
     def __init__(self, speed_limit=15.0):
         self.api = api.IngressAPI()
@@ -214,6 +226,7 @@ class Ingress(object):
         self.session = database.Session()
         self.bag = Bag()
         self.inventory_update = 0
+        self.target = None
 
         self.nickname = None
         self.player_id = None
@@ -279,6 +292,7 @@ class Ingress(object):
             return need_time
 
     def report_location(self):
+        assert self.latlng
         ret = self.api.playerUndecorated_getPaginatedPlexts(
                 [self.fake_cell, ],
                 knobSyncTimestamp=self.knobSyncTimestamp,
@@ -286,10 +300,14 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
-    def hack(self, portal):
+    def hack(self, portal=None):
+        if portal is None:
+            portal = self.target
+
+        assert portal
         assert self.latlng
-        if portal.latlng - self.latlng > self.hack_range:
-            return None
+        assert portal.latlng - self.latlng <= self.hack_range
+
         ret = self.api.gameplay_collectItemsFromPortal(
                 portal.guid,
                 knobSyncTimestamp=self.knobSyncTimestamp,
@@ -298,6 +316,8 @@ class Ingress(object):
         return ret
 
     def scan(self, meters=100):
+        assert self.latlng
+
         #find cells
         sw = self.latlng.goto(225, meters)
         ne = self.latlng.goto(45, meters)
@@ -323,13 +343,20 @@ class Ingress(object):
                 result.append(Portal(guid, info))
         return result
 
-    def deploy(self, item, portal, slot=255):
+    def deploy(self, item, portal=None, slot=255):
+        if portal is None:
+            portal = self.target
         if isinstance(item, Item):
             item = item.guid
         if isinstance(portal, Portal):
-            return portal.guid
+            portal = portal.guid
         if isinstance(item, basestring):
             item = [item, ]
+
+        assert item
+        assert portal
+        assert self.latlng
+
         ret = self.api.gameplay_deployResonatorV2(
                 item,
                 portal,
@@ -339,11 +366,18 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
-    def upgrade(self, item, portal, slot):
+    def upgrade(self, item, portal=None, slot=0):
+        if portal is None:
+            portal = self.target
         if isinstance(item, Item):
             item = item.guid
         if isinstance(portal, Portal):
-            return portal.guid
+            portal = portal.guid
+
+        assert item
+        assert portal
+        assert self.latlng
+
         ret = self.api.gameplay_upgradeResonatorV2(
                 item,
                 portal,
@@ -353,11 +387,18 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
-    def add_mod(self, item, portal, index=0):
+    def add_mod(self, item, portal=None, index=0):
+        if portal is None:
+            portal = self.target
         if isinstance(item, Item):
             item = item.guid
         if isinstance(portal, Portal):
-            return portal.guid
+            portal = portal.guid
+
+        assert item
+        assert portal
+        assert self.latlng
+
         ret = self.api.gameplay_addMod(
                 item,
                 portal,
@@ -368,6 +409,8 @@ class Ingress(object):
         return ret
 
     def collect_xm(self, meters=100):
+        assert self.latlng
+
         sw = self.latlng.goto(225, meters)
         ne = self.latlng.goto(45, meters)
         cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
@@ -401,6 +444,10 @@ class Ingress(object):
     def drop(self, item):
         if isinstance(item, Item):
             item = item.guid
+
+        assert item
+        assert self.latlng
+
         ret = self.api.gameplay_dropItem(
                 item,
                 playerLocation=self.at())
@@ -408,6 +455,12 @@ class Ingress(object):
         return ret
 
     def pickup(self, item):
+        if isinstance(item, Item):
+            item = item.guid
+            
+        assert item
+        assert self.latlng
+
         if item.latlng - self.latlng <= self.pickup_limit:
             ret = self.api.gameplay_pickUp(
                     item.guid,
@@ -423,6 +476,9 @@ class Ingress(object):
             return
         if basket.get('knobBundleUpdate'):
             self.knobSyncTimestamp = basket['knobBundleUpdate']['syncTimestamp']
+        for guid, _, info in basket.get('gameEntities', []):
+            if self.target and self.target.guid == guid:
+                self.target = Portal(guid, info)
         if basket.get('playerEntity'):
             self.player_info = basket['playerEntity'][2]['playerPersonal']
             self.max_energy = max(self.max_energy, self.player_info['energy'])

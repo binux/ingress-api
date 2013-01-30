@@ -78,15 +78,33 @@ if __name__ == '__main__':
                         logging.info('pickup %s' % each)
                 elif isinstance(each, ingress.Portal)\
                         and each.guid == portal.guid:
-                    #current portal try upgrade / install mod
-                    portal = each
-                    if portal.full:
+                    ingress.target = each
+                    # install mod
+                    for i, mod in enumerate(ingress.target.mods):
+                        if mod is None:
+                            item = ingress.bag.get_by_group('RES_SHIELD')
+                            if item:
+                                ingress.add_mod(item, index=i)
+
+                    # upgrade
+                    if ingress.target.full:
+                        res_limit = list(ingress.res_limit)
                         for res in portal.resonators:
-                            for i in range(res['level']+1, ingress.player_level):
-                                item = ingress.bag.get_by_group('EMP_BURSTER', i)
-                                if not item:
+                            if res['ownerGuid'] == ingress.player_id:
+                                res_limit[res['level']] -= 1
+                        for i, res in enumerate(portal.Resonators):
+                            if res['ownerGuid'] == ingress.player_id:
+                                continue
+                            if res['level'] >= ingress.player_level:
+                                continue
+                            for j in range(res['level']+1, ingress.player_level+1):
+                                if res_limit[j] <= 0:
                                     continue
-                                ingress.upgrade(item, portal, res['slot'])
+                                item = ingress.bag.get_by_group('EMP_BURSTER', j)
+                                if item:
+                                    ingress.upgrade(item, slot=i)
+                                    res_limit[j] -= 1
+                                    break
 
             if ingress.player_info['energyState'] != 'XM_OK'\
                     or ingress.player_info['energy'] < max(ingress.max_energy * 0.5, 500):

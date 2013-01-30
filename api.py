@@ -28,9 +28,10 @@ def hex_decode(num):
     return num
 
 class IngressAPI(object):
-    basepath = 'https://betaspike.appspot.com'
+    basepath = 'https://m-dot-betaspike.appspot.com'
     #nemesisSoftwareVersion = '2012-12-20T21:55:07Z 887b00b46b68 opt'
-    nemesisSoftwareVersion = '2013-01-15T22:12:53Z ae145d098fc5 opt'
+    #nemesisSoftwareVersion = '2013-01-15T22:12:53Z ae145d098fc5 opt'
+    nemesisSoftwareVersion = '2013-01-24T11:26:38Z bfb6a817656f opt'
     deviceSoftwareVersion = '4.1.1'
 
     def __init__(self):
@@ -43,7 +44,7 @@ class IngressAPI(object):
 
     def login(self, cookie):
         if not cookie:
-            print 'visite "https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps%3A%2F%2Fbetaspike.appspot.com"'
+            print 'visite "https://www.google.com/accounts/ServiceLogin?service=ah&passive=true&continue=https://appengine.google.com/_ah/conflogin%3Fcontinue%3Dhttps%3A%2F%2Fm-dot-betaspike.appspot.com"'
             print 'get cookie SACSID of domain betaspike.appspot.com'
             cookie = raw_input('SACSID:')
         self.session.cookies['SACSID'] = cookie
@@ -111,6 +112,7 @@ class IngressAPI(object):
             knobSyncTimestamp=None,
             maxTimestampMs=-1,
             minTimestampMs=0,
+            clientBasket={'clientBlob': None},
             playerLocation=None):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -131,6 +133,7 @@ class IngressAPI(object):
             cells=None,
             energyGlobGuids=[],
             knobSyncTimestamp=0,
+            clientBasket={'clientBlob': None},
             playerLocation=None): #"0261afb7,06f0df2e"
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -139,6 +142,7 @@ class IngressAPI(object):
             itemGuid,
             energyGlobGuids=[],
             knobSyncTimestamp=0,
+            clientBasket={'clientBlob': None},
             playerLocation=None):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -148,6 +152,7 @@ class IngressAPI(object):
             portalLinkKeyGuidSet, #[id, id]
             energyGlobGuids=[],
             knobSyncTimestamp=0, #1358260316574
+            clientBasket={'clientBlob': None},
             playerLocation=None):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -156,6 +161,7 @@ class IngressAPI(object):
             itemGuid,
             playerLocation,
             energyGlobGuids=[],
+            clientBasket={'clientBlob': None},
             knobSyncTimestamp=0):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -164,6 +170,7 @@ class IngressAPI(object):
             itemGuid,
             playerLocation,
             energyGlobGuids=[],
+            clientBasket={'clientBlob': None},
             knobSyncTimestamp=0):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -172,6 +179,7 @@ class IngressAPI(object):
             itemGuid,
             playerLocation,
             energyGlobGuids=[],
+            clientBasket={'clientBlob': None},
             knobSyncTimestamp=0):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -182,6 +190,7 @@ class IngressAPI(object):
             index=0,
             energyGlobGuids=[],
             knobSyncTimestamp=0,
+            clientBasket={'clientBlob': None},
             playerLocation=None):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
@@ -192,6 +201,7 @@ class IngressAPI(object):
             preferredSlot=255,
             location=None,
             energyGlobGuids=[],
+            clientBasket={'clientBlob': None},
             knobSyncTimestamp=0):
         location = self.hex_location(location)
         return self._call_proxy()
@@ -202,6 +212,7 @@ class IngressAPI(object):
             resonatorSlotToUpgrade=0,
             energyGlobGuids=[],
             knobSyncTimestamp=0,
+            clientBasket={'clientBlob': None},
             location=None):
         location = self.hex_location(location)
         return self._call_proxy()
@@ -212,6 +223,7 @@ class IngressAPI(object):
             location=None,
             resonatorSlots=[0,1,2,3,4,5,6,7],
             energyGlobGuids=[],
+            clientBasket={'clientBlob': None},
             knobSyncTimestamp=0):
         location = self.hex_location(location)
         return self._call_proxy()
