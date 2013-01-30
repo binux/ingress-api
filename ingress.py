@@ -494,7 +494,7 @@ class Ingress(object):
             level_up_msg = basket['levelUp']['newLevelUpMsgId']
             if getattr(self, '_level_up_msg', 0) != level_up_msg:
                 self._level_up_msg = level_up_msg
-                self.api.player_levelUp(self, level_up_msg)
+                self.api.player_levelUp(level_up_msg)
         for each in basket.get('apGains', []):
             logging.info('%s +%saps' % (each['apTrigger'], each['apGainAmount']))
         for each in basket.get('playerDamages', []):
