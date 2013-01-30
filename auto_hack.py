@@ -56,6 +56,16 @@ if __name__ == '__main__':
             ingress.target = portal
             need_time = ingress.goto(portal)
 
+            # collect xm
+            if ingress.player_info['energyState'] != 'XM_OK'\
+                    or ingress.player_info['energy'] < 1500:
+                orig_energy = ingress.player_info['energy']
+                #nearby = ingress.scan()
+                xm = ingress.collect_xm()
+                #for each in ingress.pickup(nearby):
+                    #logging.info('pickup %r' % each)
+                logging.warning('energy +%d' % (ingress.player_info['energy'] - orig_energy))
+
             # hack
             hack = ingress.hack(portal)
             if hack == COOLDOWN_MSG:
@@ -69,16 +79,6 @@ if __name__ == '__main__':
             else:
                 for each in hack['result']['addedGuids']:
                     logging.info('hacked %s' % ingress.bag.get(each))
-
-            # collect xm
-            if ingress.player_info['energyState'] != 'XM_OK'\
-                    or ingress.max_energy - ingress.player_info['energy'] < 1000:
-                orig_energy = ingress.player_info['energy']
-                #nearby = ingress.scan()
-                xm = ingress.collect_xm()
-                #for each in ingress.pickup(nearby):
-                    #logging.info('pickup %r' % each)
-                logging.warning('energy +%d' % (ingress.player_info['energy'] - orig_energy))
 
             # auto pick and upgrade
             if isinstance(ingress.target, _ingress.Portal):
