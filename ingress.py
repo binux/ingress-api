@@ -143,7 +143,7 @@ class Portal(object):
 
 class Bag(object):
     PORTAL_LINK_KEY = PORTAL_KEY = 'PORTAL_LINK_KEY'
-    EMP_BURSTER = BURSTER = EMP_BURSTER
+    EMP_BURSTER = BURSTER = 'EMP_BURSTER'
     EMITTER_A = RES = RESONATOR = 'EMITTER_A'
     RES_SHIELD = SHIELD = 'RES_SHIELD'
     MEDIA = 'MEDIA'
@@ -216,7 +216,7 @@ class Ingress(object):
     energyGlobGuids_limit = 100
     pickup_limit = 40
     fake_cell = '358b400000000000'
-    res_limit = [8, 4, 4, 4, 2, 2, 1, 1, ]
+    res_limit = [0, 8, 4, 4, 4, 2, 2, 1, 1, ]
 
     def __init__(self, speed_limit=15.0):
         self.api = api.IngressAPI()
@@ -235,7 +235,7 @@ class Ingress(object):
         self.max_energy = 0
         self.knobSyncTimestamp = 0
 
-    ap_level = reversed([0, 1, 3, 7, 15, 30, 60, 120])
+    ap_level = list(reversed([0, 1, 3, 7, 15, 30, 60, 120]))
     @property
     def player_level(self):
         ap = int(self.player_info.get('ap', 0)) / 10000.0
@@ -466,6 +466,8 @@ class Ingress(object):
                     item.guid,
                     knobSyncTimestamp=self.knobSyncTimestamp,
                     playerLocation=self.at())
+            if ret.get('error'):
+                logging.error(ret.get('error'))
             self.updateGameBasket(ret.get('gameBasket'))
             for _guid, _, _info in ret.get('gameBasket', {}).get('inventory', []):
                 items.append(self.bag.get(_guid) or Item(guid, _info))

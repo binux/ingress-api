@@ -11,7 +11,7 @@ import itertools
 
 import log
 import utils
-import ingress
+import ingress as _ingress
 import database
 import gen_path
 
@@ -24,7 +24,7 @@ COOLDOWN_MSG = {u'gameBasket': {u'deletedEntityGuids': [],
                   u'result': {u'addedGuids': []}}
 
 if __name__ == '__main__':
-    ingress = ingress.Ingress()
+    ingress = _ingress.Ingress()
     ingress.login()
     ingress.update_inventory()
     logging.info('query portals...')
@@ -72,27 +72,33 @@ if __name__ == '__main__':
             # auto pick and upgrade
             nearby = ingress.scan()
             for each in nearby:
-                if isinstance(each, ingress.Item)\
+                if isinstance(each, _ingress.Item)\
                         and each.type in ('PORTAL_LINK_KEY', 'RES_SHIELD', ):
                     for each in self.pickup(each):
                         logging.info('pickup %s' % each)
-                elif isinstance(each, ingress.Portal)\
+                elif isinstance(each, _ingress.Portal)\
                         and each.guid == portal.guid:
                     ingress.target = each
-                    # install mod
-                    for i, mod in enumerate(ingress.target.mods):
-                        if mod is None:
+                    if each.controlling == ingress.player_team:
+                        # install mod
+                        for i, mod in enumerate(ingress.target.mods):
+                            if mod is not None:
+                                continue
                             item = ingress.bag.get_by_group('RES_SHIELD')
-                            if item:
-                                ingress.add_mod(item, index=i)
+                            if not item:
+                                continue
+                            ret = ingress.add_mod(item, index=i)
+                            if ret.get('error'):
+                                logging.error(ret.get('error'))
 
-                    # upgrade
-                    if ingress.target.full:
+                        # upgrade
+                        if not ingress.target.full:
+                            continue
                         res_limit = list(ingress.res_limit)
-                        for res in portal.resonators:
+                        for res in ingress.target.resonators:
                             if res['ownerGuid'] == ingress.player_id:
                                 res_limit[res['level']] -= 1
-                        for i, res in enumerate(portal.Resonators):
+                        for i, res in enumerate(ingress.target.resonators):
                             if res['ownerGuid'] == ingress.player_id:
                                 continue
                             if res['level'] >= ingress.player_level:
@@ -100,11 +106,15 @@ if __name__ == '__main__':
                             for j in range(res['level']+1, ingress.player_level+1):
                                 if res_limit[j] <= 0:
                                     continue
-                                item = ingress.bag.get_by_group('EMP_BURSTER', j)
-                                if item:
-                                    ingress.upgrade(item, slot=i)
+                                item = ingress.bag.get_by_group('EMITTER_A', j)
+                                if not item:
+                                    continue
+                                ret = ingress.upgrade(item, slot=i)
+                                if ret.get('error'):
+                                    logging.error(ret.get('error'))
+                                else:
                                     res_limit[j] -= 1
-                                    break
+                                break
 
             if ingress.player_info['energyState'] != 'XM_OK'\
                     or ingress.player_info['energy'] < max(ingress.max_energy * 0.5, 500):
