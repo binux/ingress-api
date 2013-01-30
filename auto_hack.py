@@ -80,6 +80,9 @@ if __name__ == '__main__':
                 for each in hack['result']['addedGuids']:
                     logging.info('hacked %s' % ingress.bag.get(each))
 
+            if isinstance(ingress.target, _ingress.Portal):
+                ingress.scan()
+
             # auto pick and upgrade
             if isinstance(ingress.target, _ingress.Portal):
                 if ingress.target.controlling == ingress.player_team:
