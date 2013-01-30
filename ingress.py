@@ -455,9 +455,6 @@ class Ingress(object):
         return ret
 
     def pickup(self, item):
-        if isinstance(item, Item):
-            item = item.guid
-            
         assert item
         assert self.latlng
 
