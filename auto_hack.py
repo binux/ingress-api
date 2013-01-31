@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
             # collect xm
             if ingress.player_info['energyState'] != 'XM_OK'\
-                    or ingress.player_info['energy'] < 1500:
+                    or ingress.player_info['energy'] < max(1500, ingress.max_energy - 3000):
                 orig_energy = ingress.player_info['energy']
                 #nearby = ingress.scan()
                 xm = ingress.collect_xm()
