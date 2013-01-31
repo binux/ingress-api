@@ -28,7 +28,9 @@ if __name__ == '__main__':
     ingress.login()
     ingress.update_inventory()
     logging.info('query portals...')
-    portals = ingress.session.query(database.Portal).filter(database.Portal.ignore == 0).all()
+    portals = ingress.session.query(database.Portal)\
+            .filter(database.Portal.ignore == 0)\
+            .filter(database.Portal.group == raw_input('portal group: ')).all()
     logging.info('gen path...')
     path = gen_path.find_path(portals)
 

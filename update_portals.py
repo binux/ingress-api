@@ -15,27 +15,33 @@ except:
     pass
 
 areas = {
-        'beijing.kmz': [39798197,116014895,40125552,116709780],
-        'tianjin.kmz': [38868573,116904655,39459514,117871452],
-        'hongkong.kmz': [22111713,113755012,22755276,114502083],
-        'macao.kmz': [21990794,113332039,22322754,113738533],
-        'guangzhou.kmz': [22794529,112736030,23402124,113705574],
-        'taiwan.kmz': [21582731,119000984,25595080,123010994],
-        'shanghai.kmz': [30004290,119934822,31665645,122170540],
-        'wuhan.kmz': [30336721,114095588,30749497,114606453],
-        'guilin.kmz': [25050136,110038887,25426521,110514046],
-        'congqing.kmz': [29175535,106012398,30136209,107209907],
-        'cengdu.kmz': [30500149,103837105,30820284,104298530],
-        'nanjing.kmz': [31910505,118615527,32188697,118939624],
+        'beijing': [39798197,116014895,40125552,116709780],
+        'tianjin': [38868573,116904655,39459514,117871452],
+        'hongkong': [22111713,113755012,22755276,114502083],
+        'macao': [21990794,113332039,22322754,113738533],
+        'guangzhou': [22794529,112736030,23402124,113705574],
+        'taiwan': [21582731,119000984,25595080,123010994],
+        'shanghai': [30004290,119934822,31665645,122170540],
+        'wuhan': [30336721,114095588,30749497,114606453],
+        'guilin': [25050136,110038887,25426521,110514046],
+        'congqing': [29175535,106012398,30136209,107209907],
+        'cengdu': [30500149,103837105,30820284,104298530],
+        'nanjing': [31910505,118615527,32188697,118939624],
+        'zurich': [47342833,8467618,47416644,8568726],
         }
+
+GROUP = 'zurich'
 #capturedRegion
-def fetch(coords=areas['beijing.kmz'], cookie=_cookie, type='portalV2'):
+def fetch(coords=areas[GROUP], cookie=_cookie, type='portalV2'):
     ingress = api.IngressDashboradAPI()
     ingress.login(cookie)
 
     for result in ingress.getThinnedEntitiesV2(*coords, split=False, minLevelOfDetail=0):
+        _result = result
         result = result and result.get('result')
         result = result and result.get('map')
+        if not result:
+            print _result
         for qk, entities in result.iteritems():
             for guid, uptime, info in entities.get('gameEntities', []):
                 if type not in info:
@@ -59,6 +65,7 @@ def update_database():
         portal.lngE6 = info['locationE6']['lngE6']
         portal.level = get_level(info)
         portal.energy = get_enery(info)
+        portal.group = GROUP
         session.merge(portal)
         session.commit()
 

@@ -25,6 +25,7 @@ class Portal(Base):
     level = Column(Integer)
     energy = Column(Integer)
     ignore = Column(Integer, default=0)
+    group = Column(String)
 
     @property
     def latlng(self):
