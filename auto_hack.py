@@ -25,15 +25,12 @@ COOLDOWN_MSG = {u'gameBasket': {u'deletedEntityGuids': [],
 
 if __name__ == '__main__':
     ingress = _ingress.Ingress()
-    ingress.login()
-    ingress.update_inventory()
     logging.info('query portals...')
     portals = ingress.session.query(database.Portal)\
             .filter(database.Portal.ignore == 0)\
             .filter(database.Portal.group == raw_input('portal group: ')).all()
     logging.info('gen path...')
     path = gen_path.find_path(portals)
-
     max_portal = max(path, key=lambda x: x.guid)
     max_index = path.index(max_portal)
     path = path[max_index:]+path[:max_index]
@@ -45,6 +42,9 @@ if __name__ == '__main__':
         total_len += cur - pre
         pre = cur
     logging.info('path total length: %fkm, need %fh' % (total_len/1000, total_len / ingress.speed_limit / 60 / 60))
+
+    ingress.login()
+    ingress.update_inventory()
 
     _continue = True
     _debug = True
