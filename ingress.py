@@ -196,13 +196,13 @@ class Bag(object):
                     if self.group.get('%s|%s' % (group, i)):
                         guid = self.group['%s|%s' % (group, i)][0]
                         return self.inventory[guid]
-            elif group == 'PORTAL_LINK_KEY':
+            elif group == 'PORTAL_LINK_KEY' and self.group.get(group):
+                return self.inventory[self.group[group][0]]
+        else:
+            if group == 'PORTAL_LINK_KEY':
                 for guid in self.group[group]:
                     if self.inventory[guid].portal_guid == adding:
                         return self.inventory[guid]
-        else:
-            if group == 'PORTAL_LINK_KEY' and self.group.get(group):
-                return self.group[group][0]
             else:
                 return self.get_by_group('%s|%s' % (group, adding))
 
@@ -303,13 +303,14 @@ class Ingress(object):
     def hack(self, portal=None):
         if portal is None:
             portal = self.target
+        if isinstance(portal, Portal):
+            portal = portal.guid
 
         assert portal
         assert self.latlng
-        assert portal.latlng - self.latlng <= self.hack_range
 
         ret = self.api.gameplay_collectItemsFromPortal(
-                portal.guid,
+                portal,
                 knobSyncTimestamp=self.knobSyncTimestamp,
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
@@ -343,7 +344,9 @@ class Ingress(object):
                 result.append(Portal(guid, info))
         return result
 
-    def deploy(self, item, portal=None, slot=255):
+    def deploy(self, item=None, portal=None, slot=255):
+        if item is None:
+            item = self.bag.get_by_group('EMITTER_A')
         if portal is None:
             portal = self.target
         if isinstance(item, Item):
@@ -407,6 +410,72 @@ class Ingress(object):
                 playerLocation=self.at())
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
+
+    def link(self, orig, dest=None):
+        if dest is None:
+            dest = orig
+            orig = self.target
+        if isinstance(orig, Portal):
+            orig = orig.guid
+        if isinstance(dest, Portal):
+            dest = dest.guid
+
+        assert orig
+        assert dest
+        assert self.latlng
+
+        link_key = self.bag.get_by_group(self.bag.PORTAL_KEY, dest)
+        if not link_key:
+            return {}
+
+        ret = self.api.gameplay_createLink(
+                link_key.guid, orig, dest,
+                knobSyncTimestamp=self.knobSyncTimestamp,
+                playerLocation=self.at())
+        self.updateGameBasket(ret.get('gameBasket'))
+        return ret
+
+    burster_damage = [0, 150, 300, 500, 900, 1200, 1500, 1800, 2700]
+    def destroy(self, target = None):
+        if target:
+            self.target = target
+
+        assert self.target
+
+        enemy = 'RESISTANCE' if self.player_team == 'ALIENS' else 'ALIENS'
+        shield_cnt = len(self.target.mods) * 0.05
+        result = []
+        while self.target.controlling == enemy and self.player_info['energyState'] == 'XM_OK':
+            # chioce target
+            target_res = max(self.target.resonators, key=lambda x: x['energyTotal'])
+            self.goto(self.target.goto(45*(-target_res['slot']+10))%360,
+                    target_res['distanceToPortal'])
+            # chioce wapon
+            for i, each in enumerate(reversed(burster_damage)):
+                if target_res['energyTotal'] > each*(1-shield_cnt):
+                    break
+            level = 8 - i
+            if level > self.player_level:
+                level = self.player_level
+            for level in range(level, 0, -1):
+                item = self.bag.get_by_group(self.bag.BURSTER, level)
+                if item:
+                    break
+            if not item:
+                return
+
+            ret = self.api.gameplay_fireUntargetedRadialWeapon(
+                    item.guid,
+                    knobSyncTimestamp=self.knobSyncTimestamp,
+                    playerLocation=self.at())
+            self.updateGameBasket(ret.get('gameBasket'))
+            if ret['result'].get('damages'):
+                damage = sum((int(x['damageAmount']) for x in ret['result']['damages']))
+                result.append((item, damage))
+                logging.info('%s damage -%s' % (item, damage))
+            else:
+                break
+        return result
 
     def collect_xm(self, meters=100):
         assert self.latlng

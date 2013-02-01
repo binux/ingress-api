@@ -157,6 +157,17 @@ class IngressAPI(object):
         playerLocation = self.hex_location(playerLocation)
         return self._call_proxy()
 
+    def gameplay_createLink(self,
+            linkKeyGuid,
+            originPortalGuid,
+            destinationPortalGuid,
+            clientBasket={'clientBlob': None},
+            energyGlobGuids=[],
+            knobSyncTimestamp=0,
+            playerLocation=None):
+        playerLocation = self.hex_location(playerLocation)
+        return self._call_proxy()
+
     def gameplay_fireUntargetedRadialWeapon(self,
             itemGuid,
             playerLocation,
