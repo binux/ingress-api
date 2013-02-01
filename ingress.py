@@ -77,6 +77,8 @@ class Item(object):
             return repr(self.info)
 
 class Portal(object):
+    energyMax = [ 0, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000 ];
+
     @staticmethod
     def  is_portal(info):
         if 'portalV2' in info:
@@ -123,12 +125,10 @@ class Portal(object):
 
     @property
     def full(self):
-        full = True
         for res in self.resonators:
             if not res:
-                full = False
-                break
-        return full
+                return False
+        return True
 
     @property
     def level(self):
@@ -137,6 +137,17 @@ class Portal(object):
     @property
     def energy(self):
         return sum([x['energyTotal'] if x else 0 for x in self.resonators])
+
+    @property
+    def about_to_nature(self):
+        for x in self.resonators:
+            if x and x['energyTotal'] > self.energyMax[int(x['level'])]*0.1:
+                return False
+        return True
+
+    @property
+    def total_energy(self):
+        return sum((self.energyMax[int(x['level'])] for x in self.resonators if x))
 
     def __repr__(self):
         return '<Portal#%s %s+%d @%s,%s>' % (self.guid, self.controlling, self.level, self.latlng.lat, self.latlng.lng)

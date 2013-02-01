@@ -104,25 +104,6 @@ except:
     _cookie = None
 
 
-def get_level(info):
-    return sum([x and x['level'] or 0 for x in info['resonatorArray']['resonators']]) / 8.0
-
-def get_enery(info):
-    return sum([x and x['energyTotal'] or 0 for x in info['resonatorArray']['resonators']])
-
-energyMax = [ 0, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000 ];
-def about_to_nature(info):
-    for x in info['resonatorArray']['resonators']:
-        if x and x['energyTotal'] > energyMax[int(x['level'])]*0.1:
-            return False
-    return True
-
-def not_full(info):
-    for x in info['resonatorArray']['resonators']:
-        if not x:
-            return True
-    return False
-
 def fetch_portals(coords, cookie=_cookie):
     ingress = api.IngressDashboradAPI()
     ingress.login(cookie)
@@ -135,12 +116,12 @@ def fetch_portals(coords, cookie=_cookie):
                 if _ingress.Portal.is_portal(info):
                     yield _ingress.Portal(guid, info)
 
-def build_kml(city, coords):
+def build_kml(city):
     kml = simplekml.Kml()
     kml_fixed = simplekml.Kml()
 
-    for portal in fetch_portals(coords):
-        if about_to_nature(portal.info):
+    for portal in fetch_portals(areas[city]):
+        if portal.about_to_nature:
             portal_type = 2
         elif not portal.full:
             portal_type = 1
@@ -151,8 +132,9 @@ def build_kml(city, coords):
         latlng = portal.latlng
         desc = '<br />'.join([
                     'Level: %s' % portal.level,
+                    'Resonators: %d/8 | Mods: %d/4 | Energy: %d (%0.f%%)' % (len(portal.resonators), len(portal.mods), portal.energy, portal.energy / portal.total_energy * 100.0),
                     ('Map: <a href="https://maps.google.com/maps?q=%s%%40%s,%s" target="_blank">Google</a>' % (quote(name.encode('utf8')), latlng.lat, latlng.lng))
-                    +('<a href="http://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17" target="_blank">Ingress</a>' % (latlng.lat*1e6, latlng.lng*1e6)),
+                    +(' <a href="http://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17" target="_blank">Ingress</a>' % (latlng.lat*1e6, latlng.lng*1e6)),
                     '<img src="%s" />' % portal.image,])
 
         pnt = kml.newpoint(name=portal.title, description=desc, coords = [(latlng.lng, latlng.lat),])
@@ -172,4 +154,4 @@ def build_kml(city, coords):
 if __name__ == '__main__':
     for city, coords in areas.iteritems():
         print city, coords
-        build_kml(city, coords)
+        build_kml(city)
