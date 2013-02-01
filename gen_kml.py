@@ -132,7 +132,7 @@ def build_kml(city):
         latlng = portal.latlng
         desc = '<br />'.join([
                     'Level: %s' % portal.level,
-                    'Resonators: %d/8 | Mods: %d/4 | Energy: %d (%0.f%%)' % (len(portal.resonators), len(portal.mods), portal.energy, portal.energy / (portal.total_energy + 0.00000001) * 100.0),
+                    'Resonators: %d/8 | Mods: %d/4 | Energy: %d (%0.f%%)' % (len([x for x in portal.resonators if x]), len([x for x in portal.mods if x]), portal.energy, portal.energy / (portal.total_energy + 0.00000001) * 100.0),
                     ('Map: <a href="https://maps.google.com/maps?q=%s%%40%s,%s" target="_blank">Google</a>' % (quote(name.encode('utf8')), latlng.lat, latlng.lng))
                     +(' <a href="http://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17" target="_blank">Ingress</a>' % (latlng.lat*1e6, latlng.lng*1e6)),
                     '<img src="%s" />' % portal.image,])
