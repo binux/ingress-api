@@ -7,7 +7,11 @@
 
 import api
 import time
+import ingress as _ingress
 import simplekml
+
+from map_offset import gps2gmap
+from urllib import quote
 
 areas = {
         'beijing.kmz': [39798197,116014895,40125552,116709780],
@@ -128,37 +132,35 @@ def fetch_portals(coords, cookie=_cookie):
         result = result and result.get('map')
         for qk, entities in result.iteritems():
             for guid, uptime, info in entities.get('gameEntities', []):
-                if 'portalV2' not in info:
-                    continue
-                yield guid, uptime, info
+                if _ingress.Portal.is_portal(info):
+                    yield _ingress.Portal(guid, info)
 
 def build_kml(city, coords):
-    from map_offset import gps2gmap
     kml = simplekml.Kml()
     kml_fixed = simplekml.Kml()
 
-    for guid, uptime, info in fetch_portals(coords):
-        level = get_level(info)
-        if about_to_nature(info):
+    for portal in fetch_portals(coords):
+        if about_to_nature(portal.info):
             portal_type = 2
-        elif not_full(info):
+        elif not portal.full:
             portal_type = 1
         else:
             portal_type = 0
 
-        pnt = kml.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
-                description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
-                    level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
-                coords = [(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
+        name = portal.title
+        latlng = portal.latlng
+        desc = '<br />'.join([
+                    'Level: %s' % portal.level,
+                    ('Map: <a href="https://maps.google.com/maps?q=%s%%40%s,%s" target="_blank">Google</a>' % (quote(name.encode('utf8')), latlng.lat, latlng.lng))
+                    +('<a href="http://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17" target="_blank">Ingress</a>' % (latlng.lat*1e6, latlng.lng*1e6)),
+                    '<img src="%s" />' % portal.image,])
 
-        pnt_fixed = kml_fixed.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
-                    description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
-                        level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
-                    coords = [gps2gmap(info['locationE6']['latE6']*1e-6, info['locationE6']['lngE6']*1e-6)[::-1],])
+        pnt = kml.newpoint(name=portal.title, description=desc, coords = [(latlng.lng, latlng.lat),])
+        pnt_fixed = kml_fixed.newpoint(name=portal.title, description=desc, coords = [gps2gmap(latlng.lat, latlng.lng)[::-1],])
 
         style = styles.get('%s_%d_%d' % (
-            info['controllingTeam']['team'],
-            level,
+            portal.controlling,
+            portal.level,
             portal_type), None)
         if style:
             pnt.style = style
