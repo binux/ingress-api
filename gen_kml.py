@@ -130,15 +130,16 @@ def build_kml(city):
 
         name = portal.title
         latlng = portal.latlng
+        fixed_latlng = gps2gmap(latlng.lat, latlng.lng)
         desc = '<br />'.join([
-                    'Level: %s | Energy: %d (%0.f%%)' % (portal.level, portal.energy, portal.energy / (portal.total_energy + 0.00000001) * 100.0),
-                    'Resonators: %d/8 | Mods: %d/4' % (len([x for x in portal.resonators if x]), len([x for x in portal.mods if x])),
-                    ('Map: <a href="https://maps.google.com/maps?q=%s%%40%s,%s" target="_blank">Google</a>' % (quote(name.encode('utf8')), latlng.lat, latlng.lng))
+                    'Level: %s' % (portal.level)
                     +(' <a href="http://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17" target="_blank">Ingress</a>' % (latlng.lat*1e6, latlng.lng*1e6)),
+                    'Resonators: %d/8 | Mods: %d/4 | Energy: %d (%0.f%%)' % (len([x for x in portal.resonators if x]), len([x for x in portal.mods if x]), portal.energy, portal.energy / (portal.total_energy + 0.00000001) * 100.0),
+                    #+('Map: <a href="https://maps.google.com/maps?q=%s%%40%s,%s" target="_blank">Google</a>' % (quote(name.encode('utf8')), fiexed_latlng[0], fixed_latlng[1])),
                     '<img src="%s" style="max-width: 300px; max-height: 230px;" />' % portal.image,])
 
         pnt = kml.newpoint(name=portal.title, description=desc, coords = [(latlng.lng, latlng.lat),])
-        pnt_fixed = kml_fixed.newpoint(name=portal.title, description=desc, coords = [gps2gmap(latlng.lat, latlng.lng)[::-1],])
+        pnt_fixed = kml_fixed.newpoint(name=portal.title, description=desc, coords = [fixed_latlng[::-1],])
 
         style = styles.get('%s_%d_%d' % (
             portal.controlling,
