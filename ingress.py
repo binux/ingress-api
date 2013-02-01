@@ -217,6 +217,7 @@ class Ingress(object):
     pickup_limit = 40
     fake_cell = '358b400000000000'
     res_limit = [0, 8, 4, 4, 4, 2, 2, 1, 1, ]
+    cell_select = 15
 
     def __init__(self, speed_limit=15.0):
         self.api = api.IngressAPI()
@@ -234,6 +235,10 @@ class Ingress(object):
         self.player_info = {}
         self.max_energy = 0
         self.knobSyncTimestamp = 0
+
+        # collect xm
+        self.cells_cnt = self.session.query(database.GEOCell.cell).count()
+        self.cells_offset = 0
 
     ap_level = list(reversed([0, 1, 3, 7, 15, 30, 60, 120]))
     @property
@@ -303,7 +308,7 @@ class Ingress(object):
     def hack(self, portal=None):
         if portal is None:
             portal = self.target
-        if isinstance(portal, Portal):
+        if hasattr(portal, 'guid'):
             portal = portal.guid
 
         assert portal
@@ -351,7 +356,7 @@ class Ingress(object):
             portal = self.target
         if isinstance(item, Item):
             item = item.guid
-        if isinstance(portal, Portal):
+        if hasattr(portal, 'guid'):
             portal = portal.guid
         if isinstance(item, basestring):
             item = [item, ]
@@ -403,7 +408,7 @@ class Ingress(object):
             portal = self.target
         if isinstance(item, Item):
             item = item.guid
-        if isinstance(portal, Portal):
+        if hasattr(portal, 'guid'):
             portal = portal.guid
 
         assert item
@@ -424,7 +429,7 @@ class Ingress(object):
             portal = self.target
         if isinstance(item, Item):
             item = item.guid
-        if isinstance(portal, Portal):
+        if hasattr(portal, 'guid'):
             portal = portal.guid
 
         assert item
@@ -522,15 +527,9 @@ class Ingress(object):
         return result
 
     def collect_xm(self, meters=100):
-        assert self.latlng
-
-        sw = self.latlng.goto(225, meters)
-        ne = self.latlng.goto(45, meters)
-        cells = list(set([x[0] for x in self.session.query(database.GEOCell.cell)\
-                    .filter(sw.lat*1e6 < database.GEOCell.latE6)\
-                    .filter(database.GEOCell.latE6 < ne.lat*1e6)\
-                    .filter(sw.lng*1e6 < database.GEOCell.lngE6)\
-                    .filter(database.GEOCell.lngE6 < ne.lng*1e6).limit(40).all()]))
+        cells = [x[0] for x in self.session.query(database.GEOCell.cell).offset(self.cells_offset).limit(self.cell_select).all()]
+        self.cells_offset += self.cell_select
+        self.cells_offset %= self.cells_cnt
         if not cells:
             return {}
 
