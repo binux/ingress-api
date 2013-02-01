@@ -23,6 +23,18 @@ COOLDOWN_MSG = {u'gameBasket': {u'deletedEntityGuids': [],
                   u'inventory': []},
                   u'result': {u'addedGuids': []}}
 
+_continue = True
+_debug = True
+
+_collect_xm = True
+_hack = True
+_pickup = True
+_install_mod = False
+_upgrade = True
+_destroy = False
+_deploy = False
+_max_level = False
+
 if __name__ == '__main__':
     ingress = _ingress.Ingress()
     logging.info('query portals...')
@@ -46,8 +58,6 @@ if __name__ == '__main__':
     ingress.login()
     ingress.update_inventory()
 
-    _continue = True
-    _debug = True
     for portal in itertools.cycle(path):
         if not _continue:
             break
@@ -59,7 +69,7 @@ if __name__ == '__main__':
             need_time = ingress.goto(portal)
 
             # collect xm
-            if ingress.player_info['energyState'] != 'XM_OK'\
+            if _collect_xm and ingress.player_info['energyState'] != 'XM_OK'\
                     or ingress.player_info['energy'] < max(1500, ingress.max_energy - 3000):
                 orig_energy = ingress.player_info['energy']
                 #nearby = ingress.scan()
@@ -69,26 +79,69 @@ if __name__ == '__main__':
                 logging.warning('energy +%d' % (ingress.player_info['energy'] - orig_energy))
 
             # hack
-            hack = ingress.hack(portal)
-            if hack == COOLDOWN_MSG:
-                start_time = time.time()
-                while hack == COOLDOWN_MSG:
-                    logging.error('cooldown +%ds' % (time.time()-start_time+30))
-                    time.sleep(30)
-                    hack = ingress.hack(portal)
-            if hack.get('error'):
-                logging.error(hack.get('error'))
-            else:
-                for each in hack['result']['addedGuids']:
-                    logging.info('hacked %s' % ingress.bag.get(each))
+            if _hack:
+                hack = ingress.hack(portal)
+                if hack == COOLDOWN_MSG:
+                    start_time = time.time()
+                    while hack == COOLDOWN_MSG:
+                        logging.error('cooldown +%ds' % (time.time()-start_time+30))
+                        time.sleep(30)
+                        hack = ingress.hack(portal)
+                if hack.get('error'):
+                    logging.error(hack.get('error'))
+                else:
+                    for each in hack['result']['addedGuids']:
+                        logging.info('hacked %s' % ingress.bag.get(each))
 
             if not isinstance(ingress.target, _ingress.Portal):
                 ingress.scan()
 
-            # auto pick and upgrade
-            if isinstance(ingress.target, _ingress.Portal):
-                if ingress.target.controlling == ingress.player_team:
-                    # install mod
+            if not isinstance(ingress.target, _ingress.Portal):
+                continue
+
+            # install mod
+            if _install_mod and ingress.target.controlling == ingress.player_team:
+                for i, mod in enumerate(ingress.target.mods):
+                    if mod is not None:
+                        continue
+                    item = ingress.bag.get_by_group('RES_SHIELD')
+                    if not item:
+                        continue
+                    ret = ingress.add_mod(item, index=i)
+                    if ret.get('error'):
+                        logging.error(ret.get('error'))
+
+            # upgrade
+            if _upgrade and ingress.target.controlling == ingress.player_team:
+                if not ingress.target.full:
+                    continue
+                res_limit = list(ingress.res_limit)
+                for res in ingress.target.resonators:
+                    if res and res['ownerGuid'] == ingress.player_id:
+                        res_limit[res['level']] -= 1
+                for i, res in enumerate(ingress.target.resonators):
+                    if res['ownerGuid'] == ingress.player_id:
+                        continue
+                    if res['level'] >= ingress.player_level:
+                        continue
+                    for j in range(res['level']+1, ingress.player_level+1):
+                        if res_limit[j] <= 0:
+                            continue
+                        item = ingress.bag.get_by_group('EMITTER_A', j)
+                        if not item:
+                            continue
+                        ret = ingress.upgrade(item, slot=i)
+                        if ret.get('error'):
+                            logging.error(ret.get('error'))
+                        else:
+                            res_limit[j] -= 1
+                        break
+
+            # deploy
+            if _deploy and ingress.target.controlling == 'NEUTRAL':
+                ingress.goto(ingress.target.latlng.goto(0, 39))
+                ingress.deploy_full(max_level=_max_level)
+                if _install_mod:
                     for i, mod in enumerate(ingress.target.mods):
                         if mod is not None:
                             continue
@@ -99,31 +152,23 @@ if __name__ == '__main__':
                         if ret.get('error'):
                             logging.error(ret.get('error'))
 
-                    # upgrade
-                    if not ingress.target.full:
-                        continue
-                    res_limit = list(ingress.res_limit)
-                    for res in ingress.target.resonators:
-                        if res['ownerGuid'] == ingress.player_id:
-                            res_limit[res['level']] -= 1
-                    for i, res in enumerate(ingress.target.resonators):
-                        if res['ownerGuid'] == ingress.player_id:
-                            continue
-                        if res['level'] >= ingress.player_level:
-                            continue
-                        for j in range(res['level']+1, ingress.player_level+1):
-                            if res_limit[j] <= 0:
+            # destroy
+            enemy = 'RESISTANCE' if ingress.player_team == 'ALIENS' else 'ALIENS'
+            if _destroy and ingress.target.controlling == enemy:
+                ingress.destroy()
+
+                if _deploy:
+                    ingress.deploy_full(max_level=_max_level)
+                    if _install_mod:
+                        for i, mod in enumerate(ingress.target.mods):
+                            if mod is not None:
                                 continue
-                            item = ingress.bag.get_by_group('EMITTER_A', j)
+                            item = ingress.bag.get_by_group('RES_SHIELD')
                             if not item:
                                 continue
-                            ret = ingress.upgrade(item, slot=i)
+                            ret = ingress.add_mod(item, index=i)
                             if ret.get('error'):
                                 logging.error(ret.get('error'))
-                            else:
-                                res_limit[j] -= 1
-                            break
-
 
         except Exception, e:
             logging.exception(e)

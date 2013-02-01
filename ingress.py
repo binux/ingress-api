@@ -185,7 +185,7 @@ class Bag(object):
                 return
             return self.inventory[guid]
 
-        if not adding:
+        if adding is None:
             if group in ('EMP_BURSTER', 'MEDIA', ):
                 for i in xrange(8, 0, -1):
                     if self.group.get('%s|%s' % (group, i)):
@@ -369,6 +369,35 @@ class Ingress(object):
         self.updateGameBasket(ret.get('gameBasket'))
         return ret
 
+    def deploy_full(self, portal=None, max_level=False):
+        if portal is None:
+            portal = self.target
+        assert isinstance(portal, Portal)
+        if portal.controlling != self.player_team:
+            return
+
+        self.target = portal
+
+        res_limit = list(self.res_limit)
+        for res in self.target.resonators:
+            if res and res['ownerGuid'] == ingress.player_id:
+                res_limit[res['level']] -= 1
+        for i, res in enumerate(portal.resonators):
+            if res:
+                continue
+            for j in range(ingress.player_level, 0, -1) if max_level else range(1, ingress.player_level+1):
+                if res_limit[j] <= 0:
+                    continue
+                item = ingress.bag.get_by_group('EMITTER_A', j)
+                if not item:
+                    continue
+                ret = ingress.deploy(item, slot=i)
+                if ret.get('error'):
+                    logging.error(ret.get('error'))
+                else:
+                    res_limit[j] -= 1
+                break
+
     def upgrade(self, item, portal=None, slot=0):
         if portal is None:
             portal = self.target
@@ -447,33 +476,48 @@ class Ingress(object):
         result = []
         while self.target.controlling == enemy and self.player_info['energyState'] == 'XM_OK':
             # chioce target
-            target_res = max(self.target.resonators, key=lambda x: x['energyTotal'])
-            self.goto(self.target.goto(45*(-target_res['slot']+10))%360,
-                    target_res['distanceToPortal'])
+            target_res = max(self.target.resonators, key=lambda x: x and x['energyTotal'] or 0)
+            self.goto(self.target.latlng.goto(45*(-target_res['slot']+10)%360,
+                    target_res['distanceToPortal']))
             # chioce wapon
-            for i, each in enumerate(reversed(burster_damage)):
+            for i, each in enumerate(reversed(self.burster_damage)):
                 if target_res['energyTotal'] > each*(1-shield_cnt):
                     break
             level = 8 - i
             if level > self.player_level:
                 level = self.player_level
-            for level in range(level, 0, -1):
-                item = self.bag.get_by_group(self.bag.BURSTER, level)
-                if item:
+            elif level < 1:
+                level = 1
+            item = None
+            for i in range(1, 8):
+                if level-i > 0:
+                    item = self.bag.get_by_group(self.bag.BURSTER, level-i)
+                    if item:
+                        break
+                elif level+i <= self.player_level:
+                    item = self.bag.get_by_group(self.bag.BURSTER, level+i)
+                    if item:
+                        break
+                else:
                     break
             if not item:
-                return
+                break
 
             ret = self.api.gameplay_fireUntargetedRadialWeapon(
                     item.guid,
                     knobSyncTimestamp=self.knobSyncTimestamp,
                     playerLocation=self.at())
             self.updateGameBasket(ret.get('gameBasket'))
-            if ret['result'].get('damages'):
+            if ret.get('result', {}).get('damages'):
                 damage = sum((int(x['damageAmount']) for x in ret['result']['damages']))
                 result.append((item, damage))
-                logging.info('%s damage -%s' % (item, damage))
+                logging.info('%s damage -%s = %r' % (item, damage,
+                    [int(x['damageAmount']) for x in ret['result']['damages']]))
+            elif ret.get('error'):
+                logging.error(ret['error'])
+                break
             else:
+                logging.error(ret)
                 break
         return result
 

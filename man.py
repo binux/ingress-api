@@ -5,8 +5,9 @@
 #         http://binux.me
 # Created on 2013-02-01 11:55:30
 
-import ingress
+import ingress as _ingress
 from utils import LatLng
+import logging;logging.getLogger().setLevel(logging.INFO)
 
 def goto(lat, lng):
     ingress.goto(LatLng(lat, lng))
@@ -22,7 +23,15 @@ def link(orig, dest):
     global ret
     ret = ingress.link(orig, dest)
 
-if __name__ == '__main__':
-    _ingress = ingress
-    ingress = ingress.Ingress()
-    ingress.login()
+def contol(portal):
+    ingress.goto(ingress.target)
+    ingress.scan()
+    ingress.destroy()
+    ingress.goto(ingress.target)
+    ingress.deploy_full()
+    return ingress.target.controlling == ingress.player_team
+
+ingress = _ingress.Ingress()
+ingress.login()
+ingress.update_inventory()
+import IPython; IPython.embed()
