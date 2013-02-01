@@ -26,69 +26,69 @@ areas = {
         'taiyuan.kmz': [37635664,112425842,37944960,112793884],
         }
 styles = {
-        'ALIENS_0_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/blank.PNG',
-        'ALIENS_1_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker1.png',
-        'ALIENS_2_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker2.png',
-        'ALIENS_3_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker3.png',
-        'ALIENS_4_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker4.png',
-        'ALIENS_5_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker5.png',
-        'ALIENS_6_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker6.png',
-        'ALIENS_7_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker7.png',
-        'ALIENS_8_0': 'http://s.binux.me/ingress/icons/smallSQGreenIcons/marker8.png',
+        'ALIENS_0_0': 'http://s.binux.me/ingress/icon/enlightened/1.png',
+        'ALIENS_1_0': 'http://s.binux.me/ingress/icon/enlightened/1.png',
+        'ALIENS_2_0': 'http://s.binux.me/ingress/icon/enlightened/2.png',
+        'ALIENS_3_0': 'http://s.binux.me/ingress/icon/enlightened/3.png',
+        'ALIENS_4_0': 'http://s.binux.me/ingress/icon/enlightened/4.png',
+        'ALIENS_5_0': 'http://s.binux.me/ingress/icon/enlightened/5.png',
+        'ALIENS_6_0': 'http://s.binux.me/ingress/icon/enlightened/6.png',
+        'ALIENS_7_0': 'http://s.binux.me/ingress/icon/enlightened/7.png',
+        'ALIENS_8_0': 'http://s.binux.me/ingress/icon/enlightened/8.png',
 
-        'ALIENS_0_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/blank.png',
-        'ALIENS_1_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker1.png',
-        'ALIENS_2_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker2.png',
-        'ALIENS_3_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker3.png',
-        'ALIENS_4_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker4.png',
-        'ALIENS_5_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker5.png',
-        'ALIENS_6_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker6.png',
-        'ALIENS_7_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker7.png',
-        'ALIENS_8_1': 'http://s.binux.me/ingress/icons/largeTDGreenIcons/marker8.png',
+        'ALIENS_0_1': 'http://s.binux.me/ingress/icon/enlightened/1.png',
+        'ALIENS_1_1': 'http://s.binux.me/ingress/icon/enlightened/1.png',
+        'ALIENS_2_1': 'http://s.binux.me/ingress/icon/enlightened/2.png',
+        'ALIENS_3_1': 'http://s.binux.me/ingress/icon/enlightened/3.png',
+        'ALIENS_4_1': 'http://s.binux.me/ingress/icon/enlightened/4.png',
+        'ALIENS_5_1': 'http://s.binux.me/ingress/icon/enlightened/5.png',
+        'ALIENS_6_1': 'http://s.binux.me/ingress/icon/enlightened/6.png',
+        'ALIENS_7_1': 'http://s.binux.me/ingress/icon/enlightened/7.png',
+        'ALIENS_8_1': 'http://s.binux.me/ingress/icon/enlightened/8.png',
 
-        'ALIENS_0_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/blank.PNG',
-        'ALIENS_1_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker1.png',
-        'ALIENS_2_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker2.png',
-        'ALIENS_3_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker3.png',
-        'ALIENS_4_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker4.png',
-        'ALIENS_5_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker5.png',
-        'ALIENS_6_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker6.png',
-        'ALIENS_7_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker7.png',
-        'ALIENS_8_2': 'http://s.binux.me/ingress/icons/smallSQGreenRedIcons/marker8.png',
+        'ALIENS_0_2': 'http://s.binux.me/ingress/icon/enlightened_2/1.png',
+        'ALIENS_1_2': 'http://s.binux.me/ingress/icon/enlightened_2/1.png',
+        'ALIENS_2_2': 'http://s.binux.me/ingress/icon/enlightened_2/2.png',
+        'ALIENS_3_2': 'http://s.binux.me/ingress/icon/enlightened_2/3.png',
+        'ALIENS_4_2': 'http://s.binux.me/ingress/icon/enlightened_2/4.png',
+        'ALIENS_5_2': 'http://s.binux.me/ingress/icon/enlightened_2/5.png',
+        'ALIENS_6_2': 'http://s.binux.me/ingress/icon/enlightened_2/6.png',
+        'ALIENS_7_2': 'http://s.binux.me/ingress/icon/enlightened_2/7.png',
+        'ALIENS_8_2': 'http://s.binux.me/ingress/icon/enlightened_2/8.png',
 
-        'RESISTANCE_0_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/blank.PNG',
-        'RESISTANCE_1_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker1.png',
-        'RESISTANCE_2_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker2.png',
-        'RESISTANCE_3_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker3.png',
-        'RESISTANCE_4_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker4.png',
-        'RESISTANCE_5_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker5.png',
-        'RESISTANCE_6_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker6.png',
-        'RESISTANCE_7_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker7.png',
-        'RESISTANCE_8_0': 'http://s.binux.me/ingress/icons/smallSQBlueIcons/marker8.png',
+        'RESISTANCE_0_0': 'http://s.binux.me/ingress/icon/resistance/1.PNG',
+        'RESISTANCE_1_0': 'http://s.binux.me/ingress/icon/resistance/1.png',
+        'RESISTANCE_2_0': 'http://s.binux.me/ingress/icon/resistance/2.png',
+        'RESISTANCE_3_0': 'http://s.binux.me/ingress/icon/resistance/3.png',
+        'RESISTANCE_4_0': 'http://s.binux.me/ingress/icon/resistance/4.png',
+        'RESISTANCE_5_0': 'http://s.binux.me/ingress/icon/resistance/5.png',
+        'RESISTANCE_6_0': 'http://s.binux.me/ingress/icon/resistance/6.png',
+        'RESISTANCE_7_0': 'http://s.binux.me/ingress/icon/resistance/7.png',
+        'RESISTANCE_8_0': 'http://s.binux.me/ingress/icon/resistance/8.png',
 
-        'RESISTANCE_0_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/blank.png',
-        'RESISTANCE_1_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker1.png',
-        'RESISTANCE_2_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker2.png',
-        'RESISTANCE_3_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker3.png',
-        'RESISTANCE_4_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker4.png',
-        'RESISTANCE_5_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker5.png',
-        'RESISTANCE_6_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker6.png',
-        'RESISTANCE_7_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker7.png',
-        'RESISTANCE_8_1': 'http://s.binux.me/ingress/icons/largeTDBlueIcons/marker8.png',
+        'RESISTANCE_0_1': 'http://s.binux.me/ingress/icon/resistance/1.png',
+        'RESISTANCE_1_1': 'http://s.binux.me/ingress/icon/resistance/1.png',
+        'RESISTANCE_2_1': 'http://s.binux.me/ingress/icon/resistance/2.png',
+        'RESISTANCE_3_1': 'http://s.binux.me/ingress/icon/resistance/3.png',
+        'RESISTANCE_4_1': 'http://s.binux.me/ingress/icon/resistance/4.png',
+        'RESISTANCE_5_1': 'http://s.binux.me/ingress/icon/resistance/5.png',
+        'RESISTANCE_6_1': 'http://s.binux.me/ingress/icon/resistance/6.png',
+        'RESISTANCE_7_1': 'http://s.binux.me/ingress/icon/resistance/7.png',
+        'RESISTANCE_8_1': 'http://s.binux.me/ingress/icon/resistance/8.png',
 
-        'RESISTANCE_0_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/blank.PNG',
-        'RESISTANCE_1_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker1.png',
-        'RESISTANCE_2_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker2.png',
-        'RESISTANCE_3_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker3.png',
-        'RESISTANCE_4_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker4.png',
-        'RESISTANCE_5_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker5.png',
-        'RESISTANCE_6_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker6.png',
-        'RESISTANCE_7_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker7.png',
-        'RESISTANCE_8_2': 'http://s.binux.me/ingress/icons/smallSQBlueRedIcons/marker8.png',
+        'RESISTANCE_0_2': 'http://s.binux.me/ingress/icon/resistance_2/1.png',
+        'RESISTANCE_1_2': 'http://s.binux.me/ingress/icon/resistance_2/1.png',
+        'RESISTANCE_2_2': 'http://s.binux.me/ingress/icon/resistance_2/2.png',
+        'RESISTANCE_3_2': 'http://s.binux.me/ingress/icon/resistance_2/3.png',
+        'RESISTANCE_4_2': 'http://s.binux.me/ingress/icon/resistance_2/4.png',
+        'RESISTANCE_5_2': 'http://s.binux.me/ingress/icon/resistance_2/5.png',
+        'RESISTANCE_6_2': 'http://s.binux.me/ingress/icon/resistance_2/6.png',
+        'RESISTANCE_7_2': 'http://s.binux.me/ingress/icon/resistance_2/7.png',
+        'RESISTANCE_8_2': 'http://s.binux.me/ingress/icon/resistance_2/8.png',
 
-        'NEUTRAL_0_0': 'http://s.binux.me/ingress/icons/smallSQRedIcons/blank.PNG',
-        'NEUTRAL_0_1': 'http://s.binux.me/ingress/icons/smallSQRedIcons/blank.PNG',
-        'NEUTRAL_0_2': 'http://s.binux.me/ingress/icons/smallSQRedIcons/blank.PNG',
+        'NEUTRAL_0_0': 'http://s.binux.me/ingress/icon/blank.png',
+        'NEUTRAL_0_1': 'http://s.binux.me/ingress/icon/blank.png',
+        'NEUTRAL_0_2': 'http://s.binux.me/ingress/icon/blank.png',
         }
 for key, value in list(styles.items()):
     tmp = simplekml.Style()
@@ -133,13 +133,19 @@ def fetch_portals(coords, cookie=_cookie):
                 yield guid, uptime, info
 
 def build_kml(city, coords):
+    from map_offset import gps2gmap
     kml = simplekml.Kml()
+    kml_fixed = simplekml.Kml()
     for guid, uptime, info in fetch_portals(coords):
         level = get_level(info)
         pnt = kml.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
                 description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
                     level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
                 coords = [(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
+        pnt_fixed = kml_fixed.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
+                    description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
+                        level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
+                    coords = [gps2gmap(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
         if about_to_nature(info):
             portal_type = 2
         elif not_full(info):
@@ -152,7 +158,9 @@ def build_kml(city, coords):
             portal_type), None)
         if style:
             pnt.style = style
+            pnt_fixed.style = style
     kml.savekmz('/srv/ingress/'+city)
+    kml_fixed.savekmz('/srv/ingress/fixed_'+city)
 
 if __name__ == '__main__':
     for city, coords in areas.iteritems():
