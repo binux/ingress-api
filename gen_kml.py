@@ -136,22 +136,26 @@ def build_kml(city, coords):
     from map_offset import gps2gmap
     kml = simplekml.Kml()
     kml_fixed = simplekml.Kml()
+
     for guid, uptime, info in fetch_portals(coords):
         level = get_level(info)
-        pnt = kml.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
-                description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
-                    level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
-                coords = [(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
-        pnt_fixed = kml_fixed.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
-                    description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
-                        level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
-                    coords = [gps2gmap(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
         if about_to_nature(info):
             portal_type = 2
         elif not_full(info):
             portal_type = 1
         else:
             portal_type = 0
+
+        pnt = kml.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
+                description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
+                    level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
+                coords = [(info['locationE6']['lngE6']*1e-6, info['locationE6']['latE6']*1e-6),])
+
+        pnt_fixed = kml_fixed.newpoint(name=info['portalV2']['descriptiveText']['TITLE'],
+                    description='Level: %s\nhttp://www.ingress.com/intel?latE6=%d&lngE6=%d&z=17' % (
+                        level, info['locationE6']['latE6'], info['locationE6']['lngE6']),
+                    coords = [gps2gmap(info['locationE6']['latE6']*1e-6, info['locationE6']['lngE6']*1e-6)[::-1],])
+
         style = styles.get('%s_%d_%d' % (
             info['controllingTeam']['team'],
             level,
@@ -159,6 +163,7 @@ def build_kml(city, coords):
         if style:
             pnt.style = style
             pnt_fixed.style = style
+
     kml.savekmz('/srv/ingress/'+city)
     kml_fixed.savekmz('/srv/ingress/fixed_'+city)
 
