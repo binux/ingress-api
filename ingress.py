@@ -251,6 +251,10 @@ class Ingress(object):
         self.cells_cnt = self.session.query(database.GEOCell.cell).count()
         self.cells_offset = 0
 
+    @property
+    def enemy(self):
+        return 'RESISTANCE' if self.player_team == 'ALIENS' else 'ALIENS'
+
     ap_level = list(reversed([0, 1, 3, 7, 15, 30, 60, 120]))
     @property
     def player_level(self):
@@ -389,25 +393,25 @@ class Ingress(object):
         if portal is None:
             portal = self.target
         assert isinstance(portal, Portal)
-        if portal.controlling != self.player_team:
+        if portal.controlling == self.enemy:
             return
 
         self.target = portal
 
         res_limit = list(self.res_limit)
         for res in self.target.resonators:
-            if res and res['ownerGuid'] == ingress.player_id:
+            if res and res['ownerGuid'] == self.player_id:
                 res_limit[res['level']] -= 1
         for i, res in enumerate(portal.resonators):
             if res:
                 continue
-            for j in range(ingress.player_level, 0, -1) if max_level else range(1, ingress.player_level+1):
+            for j in range(self.player_level, 0, -1) if max_level else range(1, self.player_level+1):
                 if res_limit[j] <= 0:
                     continue
-                item = ingress.bag.get_by_group('EMITTER_A', j)
+                item = self.bag.get_by_group('EMITTER_A', j)
                 if not item:
                     continue
-                ret = ingress.deploy(item, slot=i)
+                ret = self.deploy(item, slot=i)
                 if ret.get('error'):
                     logging.error(ret.get('error'))
                 else:
@@ -487,7 +491,7 @@ class Ingress(object):
 
         assert self.target
 
-        enemy = 'RESISTANCE' if self.player_team == 'ALIENS' else 'ALIENS'
+        enemy = self.enemy
         shield_cnt = len(self.target.mods) * 0.05
         result = []
         while self.target.controlling == enemy and self.player_info['energyState'] == 'XM_OK':
@@ -505,7 +509,7 @@ class Ingress(object):
             elif level < 1:
                 level = 1
             item = None
-            for i in range(1, 8):
+            for i in range(0, 8):
                 if level-i > 0:
                     item = self.bag.get_by_group(self.bag.BURSTER, level-i)
                     if item:
