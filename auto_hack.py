@@ -46,10 +46,10 @@ def report_location(self):
 
 if __name__ == '__main__':
     group = raw_input('portal group: ')
+    _ingress.Ingress.report_location = report_location
     ingress = _ingress.Ingress()
     ingress.login()
     ingress.update_inventory()
-    ingress.report_location = report_location
 
     logging.info('query portals...')
     portals = ingress.session.query(database.Portal)\
