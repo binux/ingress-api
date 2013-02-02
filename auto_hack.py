@@ -28,25 +28,38 @@ _debug = True
 
 _collect_xm = True
 _hack = True
-_pickup = True
+_pickup = False
 _install_mod = False
-_upgrade = True
+_upgrade = False
 _destroy = False
 _deploy = False
 _max_level = False
+drop_item = ['EMITTER_A|2', 'EMITTER_A|3', 'EMP_BURSTER|1', 'EMP_BURSTER|2', 'EMP_BURSTER|3', ]
+
+def report_location(self):
+    for each in drop_item:
+        item = self.bag.get_by_group(each)
+        if item:
+            self.drop(item)
+            return
+    return
 
 if __name__ == '__main__':
+    group = raw_input('portal group: ')
     ingress = _ingress.Ingress()
+    ingress.login()
+    ingress.update_inventory()
+    ingress.report_location = report_location
+
     logging.info('query portals...')
     portals = ingress.session.query(database.Portal)\
             .filter(database.Portal.ignore == 0)\
-            .filter(database.Portal.group == raw_input('portal group: ')).all()
+            .filter(database.Portal.group == group).all()
     logging.info('gen path...')
     path = gen_path.find_path(portals)
     max_portal = max(path, key=lambda x: x.guid)
     max_index = path.index(max_portal)
     path = path[max_index:]+path[:max_index]
-
     pre = utils.LatLng(path[-1].latE6*1e-6, path[-1].lngE6*1e-6)
     total_len = 0
     for each in path:
@@ -54,9 +67,6 @@ if __name__ == '__main__':
         total_len += cur - pre
         pre = cur
     logging.info('path total length: %fkm, need %fh' % (total_len/1000, total_len / ingress.speed_limit / 60 / 60))
-
-    ingress.login()
-    ingress.update_inventory()
 
     for portal in itertools.cycle(path):
         if not _continue:
