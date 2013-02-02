@@ -28,6 +28,7 @@ areas = {
         'nanjing.kmz': [31910505,118615527,32188697,118939624],
         'zhengzhou.kmz': [34640644,113487396,34888839,113831405],
         'taiyuan.kmz': [37635664,112425842,37944960,112793884],
+        'haerbin.kmz': [45591128,126376676,45923124,126891660],
         }
 styles = {
         'ALIENS_0_0': 'http://s.binux.me/ingress/icon/enlightened/1.png',
