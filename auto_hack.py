@@ -28,6 +28,7 @@ _debug = True
 
 _collect_xm = True
 _hack = True
+_hack_log = True
 _pickup = False
 _install_mod = False
 _upgrade = False
@@ -42,14 +43,17 @@ def report_location(self):
         if item:
             self.drop(item)
             return
+    self._report_location()
     return
+#_ingress.Ingress._report_location = _ingress.Ingress.report_location
+#_ingress.Ingress.report_location = report_location
 
 if __name__ == '__main__':
     group = raw_input('portal group: ')
-    _ingress.Ingress.report_location = report_location
     ingress = _ingress.Ingress()
     ingress.login()
     ingress.update_inventory()
+    log_session = database.LogSession()
 
     logging.info('query portals...')
     portals = ingress.session.query(database.Portal)\
@@ -108,6 +112,29 @@ if __name__ == '__main__':
 
             if not isinstance(ingress.target, _ingress.Portal):
                 continue
+
+            # hack log
+            if _hack_log and not hack.get('error') and isinstance(ingress.target, _ingress.Portal):
+                hacklog = database.HackLog()
+                hacklog.guid = ingress.target.guid
+                hacklog.enemy = 0 if ingress.target.controlling == 'NEUTRAL' else 1 if ingress.enemy == ingress.target.controlling else -1
+                hacklog.resonators = ''.join([str(x['level']) if x else '0' for x in ingress.target.resonators])
+                hacklog.mods = ''.join([str(x['stats']['MITIGATION'])[0] if x else '0' for x in ingress.target.mods])
+                hacklog.level = ingress.target.level
+
+                hacklog.damage = sum([int(x['damageAmount']) for x in hack.get('gameBasket', {}).get('playerDamages', [])])
+                for each in hack['result']['addedGuids']:
+                    item = ingress.bag.get(each)
+                    if item.type == ingress.bag.EMITTER_A:
+                        setattr(hacklog, 'res%s' % item.level, (getattr(hacklog, 'res%s' % item.level) or 0)+1)
+                    elif item.type == ingress.bag.EMP_BURSTER:
+                        setattr(hacklog, 'buster%s' % item.level, (getattr(hacklog, 'buster%s' % item.level) or 0)+1)
+                    elif item.type == ingress.bag.RES_SHIELD:
+                        setattr(hacklog, 'shield%s' % item.mitigation, (getattr(hacklog, 'shield%s' % item.mitigation) or 0)+1)
+                    elif item.type == ingress.bag.PORTAL_LINK_KEY:
+                        setattr(hacklog, 'key', (getattr(hacklog, 'key') or 0)+1)
+                log_session.add(hacklog)
+                log_session.commit()
 
             # install mod
             if _install_mod and ingress.target.controlling == ingress.player_team:

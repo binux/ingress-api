@@ -597,6 +597,16 @@ class Ingress(object):
                 items.append(self.bag.get(_guid) or Item(guid, _info))
         return items
 
+    def passcode(self, passcode):
+        ret = self.api.playerUndecorated_redeemReward(passcode)
+        if ret.get('error'):
+            logging.error(ret['error'])
+        else:
+            logging.info('passcode +%sap +%sxm +%ditems' % (ret['result'].get('apAward', 0), ret['result'].get('xmAward', 0), len(ret['result'].get('inventoryAward', []))))
+        self.updateGameBasket(ret.get('gameBasket'))
+        for guid, _, info in ret.get('gameBasket', {}).get('inventory'):
+            yield self.bag.get(guid)
+
     def updateGameBasket(self, basket):
         if not basket:
             return

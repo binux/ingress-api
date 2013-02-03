@@ -6,7 +6,8 @@
 # Created on 2013-01-24 21:29:41
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, UniqueConstraint
+from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -24,7 +25,7 @@ class Portal(Base):
     lngE6 = Column(Integer)
     level = Column(Integer)
     energy = Column(Integer)
-    ignore = Column(Integer, default=0)
+    ignore = Column(Boolean, default=False)
     group = Column(String)
 
     @property
@@ -45,6 +46,44 @@ class GEOCell(Base):
     lngE6 = Column(Integer, primary_key=True)
     cell = Column(String, primary_key=True)
 
+LogBase = declarative_base()
+class HackLog(LogBase):
+    __tablename__ = 'hack_log'
+
+    id = Column(Integer, primary_key=True)
+    guid = Column(String)
+    time = Column(DateTime, default=func.now())
+    enemy = Column(Integer)
+    resonators = Column(String)
+    mods = Column(String)
+    level = Column(Float)
+    
+    damage = Column(Integer, default=0)
+    res1 = Column(Integer, default=0)
+    res2 = Column(Integer, default=0)
+    res3 = Column(Integer, default=0)
+    res4 = Column(Integer, default=0)
+    res5 = Column(Integer, default=0)
+    res6 = Column(Integer, default=0)
+    res7 = Column(Integer, default=0)
+    res8 = Column(Integer, default=0)
+    buster1 = Column(Integer, default=0)
+    buster2 = Column(Integer, default=0)
+    buster3 = Column(Integer, default=0)
+    buster4 = Column(Integer, default=0)
+    buster5 = Column(Integer, default=0)
+    buster6 = Column(Integer, default=0)
+    buster7 = Column(Integer, default=0)
+    buster8 = Column(Integer, default=0)
+    shield6 = Column(Integer, default=0)
+    shield8 = Column(Integer, default=0)
+    shield10 = Column(Integer, default=0)
+    key = Column(Integer, default=0)
+
 engine = create_engine('sqlite:///aio.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
+
+engine_log = create_engine('sqlite:///log.db')
+LogBase.metadata.create_all(engine_log)
+LogSession = sessionmaker(bind=engine_log)
