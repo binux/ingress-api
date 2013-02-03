@@ -29,22 +29,39 @@ _debug = True
 _collect_xm = True
 _hack = True
 _hack_log = True
+_auto_drop = True
 _pickup = False
 _install_mod = False
 _upgrade = False
 _destroy = False
 _deploy = False
 _max_level = False
-drop_item = ['EMITTER_A|2', 'EMITTER_A|3', 'EMP_BURSTER|1', 'EMP_BURSTER|2', 'EMP_BURSTER|3', ]
+drop_item = {
+        'RES_SHIELD|10': 2000,
+        'RES_SHIELD|8': 1000,
+        'RES_SHIELD|6': 500,
+        'EMITTER_A|1': 1000,
+        'EMITTER_A|2': 0,
+        'EMITTER_A|3': 0,
+        'EMITTER_A|4': 800,
+        'EMITTER_A|5': 500,
+        'EMITTER_A|6': 500,
+        'EMITTER_A|7': 1000,
+        'EMITTER_A|8': 2000,
+        'EMP_BURSTER|1': 100,
+        'EMP_BURSTER|2': 50,
+        'EMP_BURSTER|3': 50,
+        'EMP_BURSTER|4': 100,
+        'EMP_BURSTER|5': 500,
+        'EMP_BURSTER|6': 800,
+        'EMP_BURSTER|7': 1000,
+        'EMP_BURSTER|8': 2000,
+        }
+
+auto_drop_cnt = 0
 
 def report_location(self):
-    for each in drop_item:
-        item = self.bag.get_by_group(each)
-        if item:
-            self.drop(item)
-            return
-    self._report_location()
-    return
+    pass
 #_ingress.Ingress._report_location = _ingress.Ingress.report_location
 #_ingress.Ingress.report_location = report_location
 
@@ -106,6 +123,7 @@ if __name__ == '__main__':
                 else:
                     for each in hack['result']['addedGuids']:
                         logging.info('hacked %s' % ingress.bag.get(each))
+                        auto_drop_cnt += 1
 
             if not isinstance(ingress.target, _ingress.Portal):
                 ingress.scan()
@@ -135,6 +153,14 @@ if __name__ == '__main__':
                         setattr(hacklog, 'key', (getattr(hacklog, 'key') or 0)+1)
                 log_session.add(hacklog)
                 log_session.commit()
+
+            # auto drop
+            if _auto_drop and auto_drop_cnt > 1000:
+                auto_drop_cnt = 0
+                for group, limit in drop_item.iteritems():
+                    if len(ingress.bag.group.get(group, [])) > limit:
+                        for guid in ingress.bag.group[group][limit:]:
+                            ingress.drop(guid)
 
             # install mod
             if _install_mod and ingress.target.controlling == ingress.player_team:
