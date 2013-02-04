@@ -69,7 +69,12 @@ if __name__ == '__main__':
     group = raw_input('portal group: ')
     ingress = _ingress.Ingress()
     ingress.login()
-    ingress.update_inventory()
+    for i in range(10):
+        try:
+            ingress.update_inventory()
+            break
+        except Exception:
+            continue
     log_session = database.LogSession()
 
     logging.info('query portals...')
