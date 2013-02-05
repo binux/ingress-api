@@ -126,38 +126,61 @@ class LatLng(object):
 
         a = [0, ]*1024
         b = [0, ]*1024
+        c = [[0, 1, 3, 2],
+             [0, 2, 3, 1],
+             [3, 2, 0, 1],
+             [3, 1, 0, 2],]
 
-        def b_a_init(p1, p2, p3, p4, p5, p6):
+
+        def f_a_II(i1, i2):
+            return c[i1][i2]
+
+        def f_a_I(i1):
+            return [1, 0, 0, 3][i1]
+
+        def b_a_IIIIII(p1, p2, p3, p4, p5, p6):
             if p1 == 4:
-                i3 = p3 + p2 << 4
-                a[p4+(i3<<2)] = p6 + (p5 << 2)
-                b[p4+(p5<<2)] = p6 + (i3 << 2)
-            while True:
-                i = p1 + 1
-                j = p2 << 1
-                k = p3 << 1
-                m = p5 << 2
-                for n in range(0, 4):
-                    i1 = f_a(p6, n)
-                    i2 = f_a(n)
-                    a(i, j + (i1 >> 1))
+                return
+            i3 = p3 + p2 << 4
+            a[p4+(i3<<2)] = p6 + (p5 << 2)
+            b[p4+(p5<<2)] = p6 + (i3 << 2)
+
+            i = p1 + 1
+            j = p2 << 1
+            k = p3 << 1
+            m = p5 << 2
+            for n in range(0, 4):
+                i1 = f_a_II(p6, n)
+                i2 = f_a_I(n)
+                b_a_IIIIII(i, j + (i1 >> 1), k + (i1 & 0x1), p4, m+n, p6^i2)
+
         def b_a(double):
-            return int(max(0, min(1073741823, round(536870911.5 + 536870912.0 * double))))
+            return int(max(0, min(2**30-1, round(2**29 - 0.5 + 2**29 * double))))
+
         def aa_b(double):
-            return 1.273239544735163 * cmath.atan(double).real
+            double = 4 * cmath.atan(double).real / PI
+            if double > 0:
+                return cmath.sqrt(1 + 3 * double).real - 1
+            else:
+                return 1 - cmath.sqrt(1 - 3 * double).real
+
+        b_a_IIIIII(0, 0, 0, 0, 0, 0)
+        b_a_IIIIII(0, 0, 0, 1, 0, 1)
+        b_a_IIIIII(0, 0, 0, 2, 0, 2)
+        b_a_IIIIII(0, 0, 0, 3, 0, 3)
+        print a
 
         l = 0
-        while True:
-            j = b_a(aa_b(d10))
-            k = b_a(aa_b(d11))
-            l = i << 60
-            m = i & 0x1
-            for n in range(7, -1, -1):
-                i1 = m + ((0xF & j >> n * 4) << 6) + ((0xF & k >> n * 4) << 2)
-                print i1
-                i2 = a[i1]
-                l |= i2 >> 2 << 4 * (n * 2)
-                m = i2 & 0x3
+        j = b_a(aa_b(d10))
+        k = b_a(aa_b(d11))
+        l = i << 60
+        m = i & 0x1
+        for n in range(7, -1, -1):
+            i1 = m + ((0xF & j >> n * 4) << 6) + ((0xF & k >> n * 4) << 2)
+            i2 = a[i1]
+            print i2, i1
+            l |= i2 >> 2 << 4 * (n * 2)
+            m = i2 & 0x3
         return 1L + (l << 1);
 
 if __name__ == '__main__':
@@ -166,4 +189,4 @@ if __name__ == '__main__':
     #assert int(LatLng(40, 116).bearing_to(LatLng(35, 147))) == 91
     #assert LatLng(40, 116).goto(LatLng(35, 147), 2775934) - LatLng(35, 147) < 1000
     #assert LatLng(0, 0).from_pixel(*LatLng(40, 116).to_pixel(zoom=18), zoom=18)# == LatLng(40, 16)
-    print LatLng(40, 116).cellid()
+    print hex(LatLng(40, 116).cellid())
