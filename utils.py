@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2013-01-24 20:04:52
 
+import math
 import cmath
 import string
 digs = string.digits + string.lowercase
@@ -52,7 +53,7 @@ class LatLng(object):
         a = cmath.sin(dLat/2.0) * cmath.sin(dLat/2.0) \
                 + cmath.cos(lat1) * cmath.cos(lat2) \
                 * cmath.sin(dlng/2) * cmath.sin(dlng/2)
-        c = 2 * cmath.atan(cmath.sqrt(a) / cmath.sqrt(1-a));
+        c = 2 * math.atan2(cmath.sqrt(a).real, cmath.sqrt(1-a).real);
         d = self.R * c;
         return d.real
 
@@ -61,11 +62,11 @@ class LatLng(object):
         lat2 = to_rad(point.lat)
         dLng = to_rad(point.lng - self.lng)
 
-        y = cmath.sin(dLng) * cmath.cos(lat2);
+        y = cmath.sin(dLng) * cmath.cos(lat2)
         x = cmath.cos(lat1) * cmath.sin(lat2) \
                 - cmath.sin(lat1) * cmath.cos(lat2) * cmath.cos(dLng)
-        brng = cmath.atan(y / x)
-        return (to_deg(brng.real)+180) % 360
+        brng = math.atan2(y.real, x.real)
+        return (to_deg(brng.real)+360) % 360
 
     def goto(self, brng, dist):
         if isinstance(brng, LatLng):
@@ -78,8 +79,8 @@ class LatLng(object):
 
         lat2 = cmath.asin(cmath.sin(lat1) * cmath.cos(dist) + 
                           cmath.cos(lat1) * cmath.sin(dist) * cmath.cos(brng))
-        lng2 = lng1 + cmath.atan((cmath.sin(brng) * cmath.sin(dist) * cmath.cos(lat1)) \
-                                / (cmath.cos(dist) - cmath.sin(lat1) * cmath.sin(lat2)))
+        lng2 = lng1 + math.atan2((cmath.sin(brng) * cmath.sin(dist) * cmath.cos(lat1)).real,
+                                  (cmath.cos(dist) - cmath.sin(lat1) * cmath.sin(lat2)).real)
         lng2 = (lng2+3*PI) % (2*PI) - PI
 
         return LatLng(to_deg(lat2.real), to_deg(lng2.real))
@@ -184,9 +185,10 @@ class LatLng(object):
         return 1L + (l << 1);
 
 if __name__ == '__main__':
-    #assert int(LatLng(40, 116).distance_to(LatLng(35, 147))) == 2775934
-    #assert int(LatLng(40, 116) - LatLng(35, 147)) == 2775934
-    #assert int(LatLng(40, 116).bearing_to(LatLng(35, 147))) == 91
-    #assert LatLng(40, 116).goto(LatLng(35, 147), 2775934) - LatLng(35, 147) < 1000
-    #assert LatLng(0, 0).from_pixel(*LatLng(40, 116).to_pixel(zoom=18), zoom=18)# == LatLng(40, 16)
-    print hex(LatLng(40, 116).cellid())
+    assert int(LatLng(40, 116).distance_to(LatLng(35, 147))) == 2775934
+    assert int(LatLng(40, 116) - LatLng(35, 147)) == 2775934
+    assert int(LatLng(40, 116).bearing_to(LatLng(35, 147))) == 91
+    assert LatLng(40, 116).goto(LatLng(35, 147), 2775934) - LatLng(35, 147) < 1000
+    assert LatLng(0, 0).from_pixel(*LatLng(40, 116).to_pixel(zoom=18), zoom=18)# == LatLng(40, 16)
+    assert LatLng(46.685954,6.927548).bearing_to(LatLng(47.375620,8.538885)) - 57  < 1
+    #print hex(LatLng(40, 116).cellid())
