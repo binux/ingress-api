@@ -23,15 +23,27 @@ def link(orig, dest):
     global ret
     ret = ingress.link(orig, dest)
 
-def contol(portal):
+def contol(guid):
+    portal = ingress.session.query(database.Portal).get(guid)
+    if not portal:
+        return None
+    ingress.target = portal
     ingress.goto(ingress.target)
     ingress.scan()
+    speed_limit = ingress.speed_limit
+    ingress.speed_limit = 100
     ingress.destroy()
-    ingress.goto(ingress.target)
-    ingress.deploy_full()
+    ingress.goto(ingress.target.latlng.goto(0, 39.5))
+    ingress.deploy_full(max_level=True)
+    ingress.speed_limit = speed_limit
     return ingress.target.controlling == ingress.player_team
 
 ingress = _ingress.Ingress()
 ingress.login()
-ingress.update_inventory()
+for i in range(10):
+    try:
+        ingress.update_inventory()
+        break
+    except ValueError:
+        continue
 import IPython; IPython.embed()

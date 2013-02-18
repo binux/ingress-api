@@ -77,7 +77,12 @@ class IngressAPI(object):
                     })
         logging.debug((method, args, kwargs))
         logging.debug(response.content)
-        return response.json()
+        try:
+            return response.json()
+        except ValueError:
+            logging.error(response)
+            logging.error(response.text)
+            raise
 
     def _call_proxy(self):
         _frame = sys._getframe(1)
