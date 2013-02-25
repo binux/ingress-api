@@ -7,6 +7,7 @@
 
 import api
 import time
+import logging
 import ingress as _ingress
 import simplekml
 
@@ -161,4 +162,7 @@ def build_kml(city):
 if __name__ == '__main__':
     for city, coords in areas.iteritems():
         print city, coords
-        build_kml(city)
+        try:
+            build_kml(city)
+        except:
+            logging.exception('build_kml')
