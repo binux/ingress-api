@@ -124,9 +124,11 @@ def fetch_portals(coords, cookie=_cookie):
                     yield _ingress.Portal(guid, info)
 
 def build_kml(city):
-    kml = simplekml.Kml()
-    kml_fixed = simplekml.Kml()
+    import datetime
+    kml = simplekml.Kml(name=city.replace('.kmz', ''))
+    kml_fixed = simplekml.Kml(name=city.replace('.kmz', ''))
 
+    portal_cnt = 0
     for portal in fetch_portals(areas[city]):
         if portal.about_to_nature:
             portal_type = 2
@@ -148,6 +150,7 @@ def build_kml(city):
 
         pnt = kml.newpoint(name=portal.title, description=desc, coords = [(latlng.lng, latlng.lat),])
         pnt_fixed = kml_fixed.newpoint(name=portal.title, description=desc, coords = [fixed_latlng[::-1],])
+        portal_cnt += 1
 
         style = styles.get('%s_%d_%d' % (
             portal.controlling,
@@ -157,6 +160,7 @@ def build_kml(city):
             pnt.style = style
             pnt_fixed.style = style
 
+    kml.document.description = kml_fixed.document.description = 'created on %s, %d portals' % (datetime.datetime.now(), portal_cnt)
     kml.savekmz('/srv/ingress/'+city)
     kml_fixed.savekmz('/srv/ingress/fixed_'+city)
 
