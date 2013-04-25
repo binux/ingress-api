@@ -370,6 +370,7 @@ class IngressDashboradAPI(object):
                     data=json.dumps({
                         'method': "dashboard.getThinnedEntitiesV2",
                         'minLevelOfDetail': minLevelOfDetail,
+                        'zoom': minLevelOfDetail,
                         'boundsParamsList': group,
                         }),
                     headers={
